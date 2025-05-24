@@ -12,6 +12,7 @@ import {
   TrophyIcon,
   BookOpenIcon,
 } from "@heroicons/react/24/solid";
+import { Link } from "react-router-dom";
 
 const HeadSpeechPage = () => {
   // Data guru contoh
@@ -109,13 +110,15 @@ const HeadSpeechPage = () => {
                       className="text-gray-600 mb-4">
                       Kepala Sekolah SDN Gadungan 02
                     </Typography>
-                    <Button
-                      variant="filled"
-                      //   color="dark"
-                      className="flex items-center gap-2 bg-green-700">
-                      <BookOpenIcon className="h-5 w-5" />
-                      Profil Lengkap
-                    </Button>
+                    <Link to="/sejarah-sekolah">
+                      <Button
+                        variant="filled"
+                        //   color="dark"
+                        className="flex items-center gap-2 bg-green-700">
+                        <BookOpenIcon className="h-5 w-5" />
+                        Profil Lengkap
+                      </Button>
+                    </Link>
                   </div>
                 </div>
 

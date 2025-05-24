@@ -47,6 +47,7 @@ const VirtualTourService = {
   },
 
   getVirtualTour: async (id) => {
+    // eslint-disable-next-line no-useless-catch
     try {
       const response = await api.get(`/virtualtour/${id}`);
       return response.data;
@@ -151,6 +152,7 @@ const VirtualTourService = {
   },
 
   deleteHotspot: async (panoramaId, hotspotId) => {
+    // eslint-disable-next-line no-useless-catch
     try {
       await api.delete(`/virtualtour/${panoramaId}/hotspots/${hotspotId}`);
     } catch (error) {

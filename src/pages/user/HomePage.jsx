@@ -4,7 +4,6 @@ import {
   Typography,
   Card,
   CardBody,
-  Carousel,
   CardHeader,
   CardFooter,
   Button,

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/user/HomePage";
 import FeedPage from "./pages/user/FeedPage";
@@ -18,10 +17,9 @@ import RequireAuth from "./components/auth/RequireAuth";
 import Layout from "./components/user/Layout";
 
 import "./App.css";
+import NotFoundPage from "./components/NotFoundPage";
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <Routes>
       <Route path="login" element={<LoginPage />} />
@@ -34,16 +32,16 @@ function App() {
         <Route path="visi-misi" element={<VisiMisiPage />} />
         <Route path="sambutan-kepala-sekolah" element={<HeadSpeechPage />} />
       </Route>
+
       <Route path="/admin" element={<LayoutAdmin />}>
         <Route
           path="kelola-postingan"
           element={
             <RequireAuth allowedRoles={["admin", "superadmin"]}>
-              <ManagePostPage path="posts" />
+              <ManagePostPage />
             </RequireAuth>
           }
         />
-
         {/* Hanya superadmin yang bisa akses route berikut */}
         <Route
           path="dashboard"
@@ -80,7 +78,8 @@ function App() {
       </Route>
 
       {/* Fallback Route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
