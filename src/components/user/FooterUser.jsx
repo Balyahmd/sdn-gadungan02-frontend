@@ -78,9 +78,15 @@ export default function FooterUser() {
                 <EnvelopeIcon className="h-5 w-5 mr-2" />
                 <span className="text-gray-300">sdgadungan2@gmail.com</span>
               </li>
-              <li className="flex items-center">
+              <li className="flex items-start">
                 <ClockIcon className="h-5 w-5 mr-2" />
-                <span className="text-gray-300">Senin-Jumat: 07.00-15.00</span>
+                <div className="flex flex-col">
+                  <span className="text-gray-300">
+                    Senin-Kamis: 07.00-13.00 WIB
+                  </span>
+                  <span className="text-gray-300">Jumat: 7.00-10.30 WIB</span>
+                  <span className="text-gray-300">Jumat: 7.00-12.00 WIB</span>
+                </div>
               </li>
             </ul>
           </div>

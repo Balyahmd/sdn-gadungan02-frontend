@@ -3,15 +3,17 @@ import api from "../utils/api";
 
 const PostService = {
   getPosts: async (searchTerm = "") => {
-    try {
-      const response = await api.get(
-        `/posts?search=${encodeURIComponent(searchTerm)}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(
+      `/posts?search=${encodeURIComponent(searchTerm)}`
+    );
+    return response.data;
   },
+
+  getPostById: async (id) => {
+    const response = await api.get(`/posts/${id}`);
+    return response.data;
+  },
+
 
   createPost: async (formData) => {
     try {

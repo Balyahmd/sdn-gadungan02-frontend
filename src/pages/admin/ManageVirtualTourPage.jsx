@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { debounce } from "lodash";
+import { toast, ToastContainer } from "react-toastify";
 import {
   Card,
   CardBody,
@@ -105,16 +106,32 @@ const HotspotModal = React.memo(
       }
     }, [show, hotspotData, pannellumRef]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
       if (!form.text || form.pitch === undefined || form.yaw === undefined) {
-        alert("Harap isi semua field yang wajib diisi");
+        toast.error("Harap isi semua field yang wajib diisi");
         return;
       }
-      onSave({
-        ...hotspotData,
-        ...form,
-      });
+
+      try {
+        await onSave({
+          ...hotspotData,
+          ...form,
+        });
+
+        if (hotspotData?.id) {
+          toast.success("Hotspot berhasil diupdate");
+        } else {
+          toast.success("Hotspot berhasil ditambahkan");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        if (hotspotData?.id) {
+          toast.error("Gagal mengupdate hotspot");
+        } else {
+          toast.error("Gagal menambahkan hotspot");
+        }
+      }
     };
 
     return (
@@ -472,9 +489,18 @@ const ManageVirtualTourPage = () => {
         handleSaveHotspot(pendingHotspot);
         setPendingHotspot(null);
       }
+
+      // Show success toast
+      toast.success(
+        selectedPanorama?.id
+          ? "Panorama berhasil diperbarui"
+          : "Panorama baru berhasil ditambahkan"
+      );
     } catch (error) {
       console.error("Error menyimpan:", error);
       setUploadError(error.message || "Gagal menyimpan virtual tour");
+      // Show error toast
+      toast.error(error.message || "Gagal menyimpan virtual tour");
     } finally {
       setIsUploading(false);
     }
@@ -783,7 +809,7 @@ const ManageVirtualTourPage = () => {
       <Typography variant="h2" className="text-2xl font-bold mb-6">
         Manajemen Virtual Tour
       </Typography>
-
+      <ToastContainer />
       {uploadError && (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
           {uploadError}
@@ -904,19 +930,6 @@ const ManageVirtualTourPage = () => {
                         <PhotoIcon className="h-5 w-5" />
                         Unggah Gambar Panorama
                       </Button>
-
-                      {/* {previewUrl && (
-                                                <div className="mt-2">
-                                                    <Typography variant="small" className="mb-1">
-                                                        Pratinjau:
-                                                    </Typography>
-                                                    <img
-                                                        src={previewUrl}
-                                                        alt="Pratinjau panorama"
-                                                        className="h-32 object-cover rounded-lg border"
-                                                    />
-                                                </div>
-                                            )} */}
                     </div>
 
                     <div className="pt-4">

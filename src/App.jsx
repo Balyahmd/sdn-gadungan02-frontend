@@ -9,7 +9,7 @@ import HeadSpeechPage from "./pages/user/HeadSpeechPage";
 import LoginPage from "./pages/admin/LoginPage";
 import ManagePostPage from "./pages/admin/ManagePostPage";
 import ManageVirtualTourPage from "./pages/admin/ManageVirtualTourPage";
-import LayoutAdmin from "./components/admin/LayoutAdmin";
+import LayoutAdmin from "./layout/admin/LayoutAdmin";
 import DashboardPage from "./pages/admin/DashboardPage";
 import ManageTeacherPage from "./pages/admin/ManageTeacherPage";
 import ManageUserPage from "./pages/admin/ManageUserPage";

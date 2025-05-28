@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useState, useEffect } from "react";
 import {
   Card,
@@ -24,10 +23,10 @@ import {
   XMarkIcon,
   UserCircleIcon,
   EnvelopeIcon,
-  LockClosedIcon,
 } from "@heroicons/react/24/solid";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
+import { Pagination } from "../../components/Pagination";
 
 import api from "../../utils/api.js";
 
@@ -46,11 +45,12 @@ const ManageUserPage = () => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const [currentPage] = useState(1);
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const response = await api.get("/users");
+      console.log(response.data.length);
       setUsers(response.data.data);
     } catch (error) {
       if (error.response?.status === 401) {
@@ -110,12 +110,35 @@ const ManageUserPage = () => {
     });
   };
 
+  const setStateValue = (key, value) => {
+    setCurrentUser((prev) => ({ ...prev, [key]: value }));
+  };
   const validateForm = () => {
     const newErrors = {};
-    if (!currentUser.username.trim()) newErrors.username = "Nama wajib diisi";
-    if (!currentUser.email.trim()) newErrors.email = "Email wajib diisi";
-    if (!currentUser.password && !isEditing)
-      newErrors.password = "Password wajib diisi";
+
+    // Validasi username
+    if (!currentUser.username?.trim()) {
+      newErrors.username = "Username wajib diisi";
+    } else if (currentUser.username.length < 4) {
+      newErrors.username = "Username minimal 4 karakter";
+    }
+
+    // Validasi email
+    if (!currentUser.email?.trim()) {
+      newErrors.email = "Email wajib diisi";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentUser.email)) {
+      newErrors.email = "Format email tidak valid";
+    }
+
+    // Validasi password hanya saat bukan editing
+    if (!isEditing) {
+      if (!currentUser.password?.trim()) {
+        newErrors.password = "Password wajib diisi";
+      } else if (currentUser.password.length < 6) {
+        newErrors.password = "Password minimal 6 karakter";
+      }
+    }
+
     return newErrors;
   };
 
@@ -130,16 +153,21 @@ const ManageUserPage = () => {
       if (isEditing) {
         // eslint-disable-next-line no-undef
         await api.put(`/users/${currentUser.id}`, currentUser);
+        toast.success("User berhasil diupdate");
       } else {
         // eslint-disable-next-line no-undef
         await api.post("/users", currentUser);
+        toast.success("User berhasil ditambahkan");
       }
 
       fetchUsers();
       handleCloseModal();
     } catch (error) {
       console.error("Error saving user:", error);
-      toast.error(error.response?.data?.message || "Failed to save user");
+      toast.error(
+        error.response?.data?.message ||
+          `Gagal ${isEditing ? "mengupdate" : "menambahkan"} user`
+      );
     }
   };
 
@@ -158,7 +186,8 @@ const ManageUserPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Dialog open={openModal} handler={handleCloseModal} size="lg">
+      <ToastContainer />
+      <Dialog open={openModal} handler={handleCloseModal} size="md">
         <DialogHeader>
           {isEditing ? "Edit Pengguna" : "Tambah Pengguna Baru"}
         </DialogHeader>
@@ -281,55 +310,66 @@ const ManageUserPage = () => {
               <table className="w-full min-w-max">
                 <thead>
                   <tr>
-                    <th className="p-4 text-left bg-blue-gray-50">Username</th>
-                    <th className="p-4 text-left bg-blue-gray-50">Email</th>
-                    <th className="p-4 text-left bg-blue-gray-50">Role</th>
-
-                    <th className="p-4 text-left bg-blue-gray-50">Aksi</th>
+                    {["No", "Username", "Role", "Aksi"].map((head) => (
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                        <Typography
+                          variant="small"
+                          className="font-normal leading-none opacity-70">
+                          {head}
+                        </Typography>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {users.length > 0 ? (
-                    users.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="border-b border-blue-gray-100">
-                        <td className="p-4">{user.username}</td>
-                        <td className="p-4">{user.email}</td>
-                        <td className="p-4">
-                          <Chip
-                            value={user.role}
-                            color={
-                              user.role === "superadmin"
-                                ? "amber"
-                                : user.role === "admin"
-                                ? "blue"
-                                : "green"
-                            }
-                          />
-                        </td>
-                        <td className="p-4">
-                          <div className="flex gap-2">
-                            <Tooltip content="Edit">
-                              <IconButton
-                                variant="text"
-                                color="blue"
-                                onClick={() => handleOpenModal(user)}>
-                                <PencilIcon className="h-5 w-5" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip content="Hapus">
-                              <IconButton
-                                variant="text"
-                                color="red"
-                                onClick={() => handleOpenDeleteModal(user.id)}>
-                                <TrashIcon className="h-5 w-5" />
-                              </IconButton>
-                            </Tooltip>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    users
+                      .slice((currentPage - 1) * 5, currentPage * 5)
+                      .map((user, index) => (
+                        <tr
+                          key={user.id}
+                          className="border-b border-blue-gray-100">
+                          <td className="p-4">{index + 1}</td>
+                          <td className="p-4">{user.username}</td>
+                          <td className="p-4">{user.email}</td>
+                          <td className="p-4">
+                            <Chip
+                              value={user.role}
+                              color={
+                                user.role === "superadmin"
+                                  ? "amber"
+                                  : user.role === "admin"
+                                  ? "blue"
+                                  : "green"
+                              }
+                            />
+                          </td>
+                          <td className="p-4">
+                            <div className="flex gap-2">
+                              <Tooltip content="Edit">
+                                <IconButton
+                                  variant="text"
+                                  color="blue"
+                                  onClick={() => handleOpenModal(user)}>
+                                  <PencilIcon className="h-5 w-5" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip content="Hapus">
+                                <IconButton
+                                  variant="text"
+                                  color="red"
+                                  onClick={() =>
+                                    handleOpenDeleteModal(user.id)
+                                  }>
+                                  <TrashIcon className="h-5 w-5" />
+                                </IconButton>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
                   ) : (
                     <tr>
                       <td colSpan="5" className="p-4 text-center">
@@ -339,6 +379,13 @@ const ManageUserPage = () => {
                   )}
                 </tbody>
               </table>
+              <div className="mt-4 mb-8 flex justify-end">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(users.length / 5)}
+                  onPageChange={(page) => setStateValue("currentPage", page)}
+                />
+              </div>
             </div>
           )}
         </CardBody>

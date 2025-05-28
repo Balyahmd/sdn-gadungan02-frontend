@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import PostService from "../../services/postService";
+import imageNotFound from "../../assets/image_nonFound.png";
+import { Pagination } from "../../components/Pagination";
 import {
   Card,
   CardBody,
@@ -28,6 +30,8 @@ import {
   MagnifyingGlassIcon,
   InformationCircleIcon,
   PhotoIcon,
+  XMarkIcon,
+  CheckIcon,
 } from "@heroicons/react/24/solid";
 
 const ManagePostPage = () => {
@@ -52,6 +56,8 @@ const ManagePostPage = () => {
     isSubmitting: false,
     deleteModalOpen: false,
     postToDelete: null,
+    errors: {},
+    currentPage: 1,
   });
 
   const navigate = useNavigate();
@@ -69,24 +75,19 @@ const ManagePostPage = () => {
     isSubmitting,
     deleteModalOpen,
     postToDelete,
+    errors,
+    currentPage,
   } = state;
 
   const setStateValue = (key, value) => {
     setState((prev) => ({ ...prev, [key]: value }));
   };
 
-  const getImageUrl = (path) => {
-    if (!path) return "https://via.placeholder.com/150";
-    if (path.startsWith("http")) return path;
-    const cleanPath = path.replace(/^[\\/]+/, "");
-    return `${window.location.origin}/${cleanPath}`;
-  };
-
   const fetchPosts = async () => {
     try {
       setStateValue("loading", true);
-      const data = await PostService.getPosts(searchTerm);
-      setStateValue("posts", data.data || []);
+      const response = await PostService.getPosts(searchTerm);
+      setStateValue("posts", response.data || []);
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Gagal memuat postingan");
@@ -99,17 +100,30 @@ const ManagePostPage = () => {
     }
   };
 
-  const handleSubmit = async () => {
-    const requiredFields = [
-      currentPost.title_postingan,
-      currentPost.deskripsi_postingan,
-      currentPost.text_postingan,
-      currentPost.kategori,
-      currentPost.keyword,
-    ];
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      fetchPosts();
+    }, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
 
-    if (requiredFields.some((field) => !field)) {
-      toast.warning("Semua field wajib diisi kecuali thumbnail");
+  const validateForm = () => {
+    const newErrors = {};
+    if (!currentPost.title_postingan)
+      newErrors.title_postingan = "Judul wajib diisi";
+    if (!currentPost.deskripsi_postingan)
+      newErrors.deskripsi_postingan = "Deskripsi wajib diisi";
+    if (!currentPost.text_postingan)
+      newErrors.text_postingan = "Konten wajib diisi";
+    if (!currentPost.kategori) newErrors.kategori = "Kategori wajib diisi";
+    if (!currentPost.keyword) newErrors.keyword = "Keyword wajib diisi";
+    return newErrors;
+  };
+
+  const handleSubmit = async () => {
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setStateValue("errors", formErrors);
       return;
     }
 
@@ -125,21 +139,25 @@ const ManagePostPage = () => {
 
       if (imageFile) {
         formData.append("thumbnail", imageFile);
-      } else {
-        formData.append("keepExistingImage", isEdit ? "true" : "false");
+      } else if (isEdit && currentPost.thumbnail_postingan) {
+        formData.append("keepExistingImage", "true");
       }
 
       if (isEdit) {
         await PostService.updatePost(currentPost.id, formData);
+        toast.success("Postingan berhasil diupdate");
       } else {
         await PostService.createPost(formData);
+        toast.success("Postingan berhasil ditambahkan");
       }
 
       setStateValue("open", false);
       await fetchPosts();
-      toast.success(`Postingan berhasil ${isEdit ? "diupdate" : "dibuat"}`);
+      toast.success(
+        `Postingan berhasil ${isEdit ? "diupdate" : "ditambahkan"}`
+      );
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error submitting post:", error);
       toast.error(
         error.response?.data?.message ||
           `Gagal ${isEdit ? "mengupdate" : "membuat"} postingan`
@@ -156,11 +174,11 @@ const ManagePostPage = () => {
         "posts",
         posts.filter((post) => post.id !== postToDelete.id)
       );
-      toast.success("Post deleted successfully");
       setStateValue("deleteModalOpen", false);
+      toast.success("Postingan berhasil dihapus");
     } catch (error) {
       console.error("Error deleting post:", error);
-      toast.error("Failed to delete post");
+      toast.error("Gagal menghapus postingan");
     }
   };
 
@@ -181,6 +199,7 @@ const ManagePostPage = () => {
       });
       setStateValue("imagePreview", "");
       setStateValue("imageFile", null);
+      setStateValue("errors", {});
     }
   };
 
@@ -189,16 +208,12 @@ const ManagePostPage = () => {
     setStateValue("imagePreview", post.thumbnail_postingan || "");
     setStateValue("isEdit", true);
     setStateValue("open", true);
+    setStateValue("errors", {});
   };
 
   const handleDeleteClick = (post) => {
     setStateValue("postToDelete", post);
     setStateValue("deleteModalOpen", true);
-  };
-
-  const handleImageError = (e) => {
-    e.target.src = "https://via.placeholder.com/150";
-    console.error("Gambar gagal dimuat:", e.target.src);
   };
 
   const handleChange = (e) => {
@@ -223,170 +238,13 @@ const ManagePostPage = () => {
     });
   };
 
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchPosts();
-    }, 500);
-
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
-
-  const renderLoading = () => (
-    <div className="flex justify-center items-center h-screen">
-      <Spinner className="h-12 w-12" />
-    </div>
-  );
-
-  const renderTable = () => (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-max table-auto">
-        <thead>
-          <tr>
-            {["Thumbnail", "Judul", "Deskripsi", "Kategori", "Aksi"].map(
-              (head) => (
-                <th
-                  key={head}
-                  className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                  <Typography
-                    variant="small"
-                    className="font-normal leading-none opacity-70">
-                    {head}
-                  </Typography>
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((post) => (
-            <tr key={post.id}>
-              <td className="p-4 border-b border-blue-gray-50">
-                <Avatar
-                  src={getImageUrl(post.thumbnail_postingan)}
-                  alt={post.title_postingan}
-                  size="lg"
-                  variant="rounded"
-                  onError={handleImageError}
-                />
-              </td>
-              <td className="p-4 border-b border-blue-gray-50">
-                <Typography variant="small" className="font-medium">
-                  {post.title_postingan}
-                </Typography>
-              </td>
-              <td className="p-4 border-b border-blue-gray-50">
-                <div className="flex items-start">
-                  <Typography variant="small" className="font-normal">
-                    {showFullDescription[post.id]
-                      ? post.deskripsi_postingan
-                      : `${post.deskripsi_postingan.substring(0, 50)}...`}
-                  </Typography>
-                  <Tooltip
-                    content={
-                      showFullDescription[post.id]
-                        ? "Sembunyikan"
-                        : "Lihat Selengkapnya"
-                    }>
-                    <IconButton
-                      variant="text"
-                      size="sm"
-                      onClick={() => toggleDescription(post.id)}
-                      className="ml-2">
-                      <InformationCircleIcon className="h-4 w-4" />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </td>
-              <td className="p-4 border-b border-blue-gray-50">
-                <Chip
-                  value={post.kategori}
-                  color={
-                    post.kategori === "Pengumuman"
-                      ? "blue"
-                      : post.kategori === "Prestasi"
-                      ? "green"
-                      : "amber"
-                  }
-                />
-              </td>
-              <td className="p-4 border-b border-blue-gray-50">
-                <div className="flex gap-2">
-                  <Tooltip content="Edit">
-                    <IconButton
-                      variant="text"
-                      color="blue"
-                      size="sm"
-                      onClick={() => handleEdit(post)}>
-                      <PencilIcon className="h-4 w-4" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip content="Hapus">
-                    <IconButton
-                      variant="text"
-                      color="red"
-                      size="sm"
-                      onClick={() => handleDeleteClick(post)}>
-                      <TrashIcon className="h-4 w-4" />
-                    </IconButton>
-                  </Tooltip>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-
-  const renderEmptyState = () => (
-    <Typography className="text-center py-8">
-      Tidak ada postingan ditemukan
-    </Typography>
-  );
-
-  const renderImageUpload = () => (
-    <div>
-      <Typography variant="h6" className="mb-2">
-        Thumbnail Postingan {!isEdit && "(Opsional)"}
-      </Typography>
-      <div className="flex flex-col items-start gap-4">
-        {imagePreview && (
-          <Avatar
-            src={imagePreview}
-            alt="Preview"
-            size="xxl"
-            variant="rounded"
-            className="border border-gray-300"
-          />
-        )}
-        <div className="relative">
-          <input
-            id="thumbnail-upload"
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            onChange={handleImageChange}
-          />
-          <Button
-            variant="outlined"
-            color="blue"
-            className="flex items-center gap-2"
-            component="label"
-            htmlFor="thumbnail-upload">
-            <PhotoIcon className="h-5 w-5" />
-            {imagePreview ? "Ganti Gambar" : "Unggah Gambar"}
-          </Button>
-        </div>
-        {isEdit && !imageFile && (
-          <Typography variant="small" color="gray" className="italic">
-            Biarkan kosong jika tidak ingin mengubah gambar
-          </Typography>
-        )}
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner className="h-12 w-12" />
       </div>
-    </div>
-  );
-
-  if (loading) return renderLoading();
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -394,7 +252,6 @@ const ManagePostPage = () => {
         Kelola Postingan
       </Typography>
 
-      {/* Search and Add Button */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div className="w-full md:w-1/2">
           <Input
@@ -409,44 +266,217 @@ const ManagePostPage = () => {
         </Button>
       </div>
 
-      {/* Posts Table */}
       <Card>
         <CardBody>
-          {posts.length === 0 ? renderEmptyState() : renderTable()}
+          {posts.length === 0 ? (
+            <Typography className="text-center py-8">
+              Tidak ada postingan ditemukan
+            </Typography>
+          ) : (
+            <div className="overflow-x-auto">
+              <ToastContainer />
+              <table className="w-full min-w-max table-auto">
+                <thead>
+                  <tr>
+                    {[
+                      "No",
+                      "Thumbnail",
+                      "Judul",
+                      "Deskripsi",
+                      "Kategori",
+                      "Aksi",
+                    ].map((head) => (
+                      <th
+                        key={head}
+                        className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                        <Typography
+                          variant="small"
+                          className="font-normal leading-none opacity-70">
+                          {head}
+                        </Typography>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {posts
+                    .slice((currentPage - 1) * 5, currentPage * 5)
+                    .map((post, index) => (
+                      <tr key={post.id}>
+                        <td className="p-4">{index + 1}</td>
+                        <td className="p-4 border-b border-blue-gray-50">
+                          <Avatar
+                            src={post.thumbnail_postingan || imageNotFound}
+                            alt={post.title_postingan}
+                            size="lg"
+                            variant="rounded"
+                          />
+                        </td>
+                        <td className="p-4 border-b border-blue-gray-50">
+                          <Typography variant="small" className="font-medium">
+                            {post.title_postingan}
+                          </Typography>
+                        </td>
+                        <td className="p-4 border-b border-blue-gray-50">
+                          <div className="flex items-start">
+                            <Typography variant="small" className="font-normal">
+                              {showFullDescription[post.id]
+                                ? post.deskripsi_postingan
+                                : `${post.deskripsi_postingan.substring(
+                                    0,
+                                    50
+                                  )}...`}
+                            </Typography>
+                            <Tooltip
+                              content={
+                                showFullDescription[post.id]
+                                  ? "Sembunyikan"
+                                  : "Lihat Selengkapnya"
+                              }>
+                              <IconButton
+                                variant="text"
+                                size="sm"
+                                onClick={() => toggleDescription(post.id)}
+                                className="ml-2">
+                                <InformationCircleIcon className="h-4 w-4" />
+                              </IconButton>
+                            </Tooltip>
+                          </div>
+                        </td>
+                        <td className="p-4 border-b border-blue-gray-50">
+                          <Chip
+                            value={post.kategori}
+                            color={
+                              post.kategori === "Pengumuman"
+                                ? "blue"
+                                : post.kategori === "Prestasi"
+                                ? "green"
+                                : "amber"
+                            }
+                          />
+                        </td>
+                        <td className="p-4 border-b border-blue-gray-50">
+                          <div className="flex gap-2">
+                            <Tooltip content="Edit">
+                              <IconButton
+                                variant="text"
+                                color="blue"
+                                size="sm"
+                                onClick={() => handleEdit(post)}>
+                                <PencilIcon className="h-4 w-4" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip content="Hapus">
+                              <IconButton
+                                variant="text"
+                                color="red"
+                                size="sm"
+                                onClick={() => handleDeleteClick(post)}>
+                                <TrashIcon className="h-4 w-4" />
+                              </IconButton>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              <div className="mt-4 mb-8 flex justify-end">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={Math.ceil(posts.length / 5)}
+                  onPageChange={(page) => setStateValue("currentPage", page)}
+                />
+              </div>
+            </div>
+          )}
         </CardBody>
       </Card>
 
-      {/* Add/Edit Modal */}
-      <Dialog open={open} handler={handleOpen} size="xl">
+      <Dialog open={open} handler={handleOpen} size="lg">
         <DialogHeader>
           {isEdit ? "Edit Postingan" : "Tambah Postingan Baru"}
         </DialogHeader>
-        <DialogBody divider className="overflow-y-auto max-h-[80vh]">
+        <DialogBody divider className="overflow-y-auto max-h-[70vh]">
           <div className="grid grid-cols-1 gap-6">
-            {renderImageUpload()}
+            <div>
+              <Typography variant="h6" className="mb-2">
+                Thumbnail Postingan {!isEdit && "(Opsional)"}
+              </Typography>
+              <div className="flex flex-col items-start gap-4">
+                {imagePreview && (
+                  <Avatar
+                    src={imagePreview}
+                    alt="Preview"
+                    size="xxl"
+                    variant="rounded"
+                    className="border border-gray-300"
+                  />
+                )}
+                <div className="relative">
+                  <Button
+                    variant="outlined"
+                    color="blue"
+                    className="flex items-center gap-2">
+                    <PhotoIcon className="h-5 w-5" />
+                    {imagePreview ? "Ganti Gambar" : "Unggah Gambar"}
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+                {isEdit && !imageFile && (
+                  <Typography variant="small" color="gray" className="italic">
+                    Biarkan kosong jika tidak ingin mengubah gambar
+                  </Typography>
+                )}
+              </div>
+            </div>
+
             <Input
               label="Judul Postingan *"
               name="title_postingan"
               value={currentPost.title_postingan}
               onChange={handleChange}
-              required
+              error={!!errors.title_postingan}
             />
+            {errors.title_postingan && (
+              <Typography color="red" variant="small">
+                {errors.title_postingan}
+              </Typography>
+            )}
+
             <Textarea
               label="Deskripsi Singkat *"
               name="deskripsi_postingan"
               value={currentPost.deskripsi_postingan}
               onChange={handleChange}
               rows={3}
-              required
+              error={!!errors.deskripsi_postingan}
             />
+            {errors.deskripsi_postingan && (
+              <Typography color="red" variant="small">
+                {errors.deskripsi_postingan}
+              </Typography>
+            )}
+
             <Textarea
               label="Konten Lengkap *"
               name="text_postingan"
               rows={8}
               value={currentPost.text_postingan}
               onChange={handleChange}
-              required
+              error={!!errors.text_postingan}
             />
+            {errors.text_postingan && (
+              <Typography color="red" variant="small">
+                {errors.text_postingan}
+              </Typography>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Select
                 label="Kategori *"
@@ -457,18 +487,29 @@ const ManagePostPage = () => {
                     kategori: value,
                   })
                 }
-                required>
+                error={!!errors.kategori}>
                 <Option value="Pengumuman">Pengumuman</Option>
                 <Option value="Prestasi">Prestasi</Option>
                 <Option value="Kegiatan">Kegiatan</Option>
               </Select>
+              {errors.kategori && (
+                <Typography color="red" variant="small">
+                  {errors.kategori}
+                </Typography>
+              )}
+
               <Input
                 label="Keywords (pisahkan dengan koma) *"
                 name="keyword"
                 value={currentPost.keyword}
                 onChange={handleChange}
-                required
+                error={!!errors.keyword}
               />
+              {errors.keyword && (
+                <Typography color="red" variant="small">
+                  {errors.keyword}
+                </Typography>
+              )}
             </div>
           </div>
         </DialogBody>
@@ -479,7 +520,7 @@ const ManagePostPage = () => {
             onClick={handleOpen}
             className="mr-1"
             disabled={isSubmitting}>
-            Batal
+            <XMarkIcon className="h-5 w-5" /> Batal
           </Button>
           <Button
             variant="gradient"
@@ -491,16 +532,15 @@ const ManagePostPage = () => {
                 <Spinner className="h-4 w-4" />
                 Menyimpan...
               </div>
-            ) : isEdit ? (
-              "Update"
             ) : (
-              "Simpan"
+              <>
+                <CheckIcon className="h-5 w-5" /> {isEdit ? "Update" : "Simpan"}
+              </>
             )}
           </Button>
         </DialogFooter>
       </Dialog>
 
-      {/* Delete Confirmation Modal */}
       <Dialog
         open={deleteModalOpen}
         handler={() => setStateValue("deleteModalOpen", false)}>
@@ -518,7 +558,7 @@ const ManagePostPage = () => {
             Batal
           </Button>
           <Button variant="gradient" color="red" onClick={handleDelete}>
-            Delete
+            Hapus
           </Button>
         </DialogFooter>
       </Dialog>

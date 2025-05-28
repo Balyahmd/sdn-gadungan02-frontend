@@ -4,9 +4,6 @@ import {
   Card,
   CardBody,
   CardHeader,
-  List,
-  ListItem,
-  ListItemPrefix,
 } from "@material-tailwind/react";
 import { MapPinIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
 
@@ -37,13 +34,16 @@ export default function ContactUser() {
             {/* Kontak dalam satu baris memanjang */}
             <div className="flex flex-col md:flex-row gap-1 mb-8 overflow-hidden">
               <div className="bg-blue-gray-50/50 rounded-lg p-4 min-w-[250px] flex-2">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <div className="bg-green-100 p-2 rounded-full mr-4">
                     <MapPinIcon className="h-5 w-5 text-darkGreenColor1" />
                   </div>
                   <div>
-                    <Typography color="gray" className="font-normal">
-                      Jl. Cincin Kota No.8, Karangsari
+                    <Typography
+                      color="gray"
+                      className="font-normal max-w-[235px]">
+                      Dsn. Sukomulyo RT.04 RW.01, Gadungan, Kec. Gandusari, Kab.
+                      Blitar, Jawa Timur.
                       <br />
                     </Typography>
                   </div>

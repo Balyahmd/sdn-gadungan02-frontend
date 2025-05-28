@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/auth/AuthContext";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../../assets/logo_sdn_gadungan02.png";
-
+import { toast, ToastContainer } from "react-toastify";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/solid";
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -16,39 +17,103 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const validateInputs = () => {
+    const errors = {};
+
+    if (!formData.username.trim()) {
+      errors.username = "Username wajib diisi";
+    } else if (formData.username.length < 3) {
+      errors.username = "Username minimal 4 karakter";
+    }
+
+    if (!formData.password) {
+      errors.password = "Password wajib diisi";
+    } else if (formData.password.length < 6) {
+      errors.password = "Password minimal 6 karakter";
+    }
+
+    return errors;
   };
 
-  // pages/LoginPage.jsx
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setError("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const validationErrors = validateInputs();
+    if (Object.keys(validationErrors).length > 0) {
+      const errorMessages = Object.values(validationErrors).join(", ");
+      setError(errorMessages);
+      toast.error(errorMessages, {
+        icon: <XMarkIcon className="h-5 w-5" />,
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
       const result = await login(formData.username, formData.password);
-      console.log("Login result:", result);
 
       if (result.success) {
-        // Check if user object exists and has role
         if (result.user && result.user.role) {
           const targetRoute =
             result.user.role === "superadmin"
               ? "/admin/dashboard"
               : "/admin/kelola-postingan";
-          navigate(targetRoute);
+
+          toast.success("Login berhasil! Selamat datang kembali.", {
+            icon: <CheckIcon className="h-5 w-5" />,
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+          });
+
+          setTimeout(() => {
+            navigate(targetRoute);
+          }, 3000);
         } else {
-          setError("User data incomplete");
+          toast.error("Data pengguna tidak lengkap", {
+            icon: <XMarkIcon className="h-5 w-5" />,
+            position: "top-right",
+            autoClose: 3000,
+            theme: "colored",
+          });
+          setError("Data pengguna tidak lengkap");
         }
       } else {
-        setError(result.message || "Login failed");
+        toast.error(result.message || "Username atau password salah", {
+          icon: <XMarkIcon className="h-5 w-5" />,
+          position: "top-right",
+          autoClose: 3000,
+          theme: "colored",
+        });
+        setError(result.message || "Username atau password salah");
       }
     } catch (err) {
-      setError("An unexpected error occurred");
+      const errorMsg = "Terjadi kesalahan. Silakan coba lagi.";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        icon: <XMarkIcon className="h-5 w-5" />,
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
       console.error("Login error:", err);
     } finally {
       setLoading(false);
@@ -71,6 +136,7 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
+            <ToastContainer />
             <label className="block mb-2">Username</label>
             <input
               type="text"
