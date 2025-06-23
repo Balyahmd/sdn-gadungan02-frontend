@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import HeaderAdmin from "../../components/admin/HeaderAdmin";
-import SidebarAdmin from "../../components/admin/SidebarAdmin";
+import SidebarAdmin from "../../components/admin/SideBarAdmin";
 import FooterAdmin from "../../components/admin/FooterAdmin";
 
 const LayoutAdmin = () => {

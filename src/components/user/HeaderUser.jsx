@@ -87,10 +87,6 @@ export default function Header() {
               Ds. Sukomulyo 04/01, Gadungan, Gandusari, Blitar, Jawa Timur.
             </span>
           </div>
-          <div className="hidden sm:flex items-center">
-            <PhoneIcon className="h-4 w-4 mr-2" />
-            <span className="text-sm">(0287) 381407</span>
-          </div>
           <div className="hidden md:flex items-center">
             <EnvelopeIcon className="h-4 w-4 mr-2" />
             <span className="text-sm">sdngadungan02@gmail.com</span>
