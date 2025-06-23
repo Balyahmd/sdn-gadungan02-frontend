@@ -26,12 +26,14 @@ const JumbotronUser = () => {
     {
       image: jumbo2,
       title: "Pendidikan Berkualitas",
-      subtitle: "Menyiapkan Generasi Unggul untuk Masa Depan",
+      subtitle:
+        "Menyiapkan Generasi Unggul yang Siap Menghadapi Tantangan dan Meraih Kesuksesan di Masa Depan",
     },
     {
       image: jumbo3,
       title: "Fasilitas Modern",
-      subtitle: "Lingkungan Belajar yang Nyaman",
+      subtitle:
+        "Lingkungan Belajar yang Nyaman, mendukung proses pembelajaran yang efektif, kreatif, dan menyenangkan bagi seluruh siswa.",
     },
   ];
 
@@ -61,11 +63,28 @@ const JumbotronUser = () => {
             }}>
             <div className="absolute inset-0 bg-black opacity-20"></div>
             <div className="container mx-auto px-4 z-10 text-center">
-              <Typography variant="h1" className="text-white mb-4">
+              <Typography
+                variant="h1"
+                className="text-white mb-2 text-3xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
                 {slide.title}
               </Typography>
-              <Typography variant="lead" className="text-gray-300 mb-8">
+              <Typography
+                variant="lead"
+                className="text-gray-300 mb-8 block lg:hidden">
                 {slide.subtitle}
+              </Typography>
+              <Typography
+                variant="lead"
+                className="text-gray-300 mb-8 hidden lg:block">
+                {slide.subtitle
+                  .split(" ")
+                  .slice(0, Math.ceil(slide.subtitle.split(" ").length / 2))
+                  .join(" ")}
+                <br />
+                {slide.subtitle
+                  .split(" ")
+                  .slice(Math.ceil(slide.subtitle.split(" ").length / 2))
+                  .join(" ")}
               </Typography>
               <div className="flex gap-4 justify-center">
                 <Link to="/sambutan-kepala-sekolah">

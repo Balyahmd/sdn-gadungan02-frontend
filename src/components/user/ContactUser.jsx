@@ -32,29 +32,27 @@ export default function ContactUser() {
 
           <CardBody className="px-8 pb-6">
             {/* Kontak dalam satu baris memanjang */}
-            <div className="flex flex-col md:flex-row gap-1 mb-8 overflow-hidden">
-              <div className="bg-blue-gray-50/50 rounded-lg p-4 min-w-[250px] flex-2">
-                <div className="flex items-start">
-                  <div className="bg-green-100 p-2 rounded-full mr-4">
+            <div className="flex flex-col md:flex-row gap-4 mb-8 overflow-hidden px-0 md:px-4">
+              <div className="flex-1 flex">
+                <div className="bg-blue-gray-50/50 rounded-lg p-4 w-full flex items-center h-full">
+                  <div className="bg-green-100 p-2 rounded-full mr-4 flex-shrink-0">
                     <MapPinIcon className="h-5 w-5 text-darkGreenColor1" />
                   </div>
-                  <div>
-                    <Typography color="gray" className="font-normal">
-                      Dsn. Sukomulyo RT.04 RW.01, Gadungan, Kec. Gandusari, Kab.
-                      Blitar, Jawa Timur.
-                      <br />
+                  <div className="flex-1">
+                    <Typography color="gray" className="font-normal max-w-full">
+                      Dusun Sukomulyo RT 04 RW 01, Desa Gadungan, Kec.
+                      Gandusari, Kab. Blitar, Jawa Timur
                     </Typography>
                   </div>
                 </div>
               </div>
-
-              <div className="bg-blue-gray-50/50 rounded-lg p-4 min-w-[250px] flex-2">
-                <div className="flex items-center">
-                  <div className="bg-green-100 p-2 rounded-full mr-4">
+              <div className="flex-1 flex">
+                <div className="bg-blue-gray-50/50 rounded-lg p-4 w-full flex items-center h-full">
+                  <div className="bg-green-100 p-2 rounded-full mr-4 flex-shrink-0">
                     <EnvelopeIcon className="h-5 w-5 text-darkGreenColor1" />
                   </div>
-                  <div>
-                    <Typography color="gray" className="font-normal">
+                  <div className="flex-1">
+                    <Typography color="gray" className="font-normal max-w-full">
                       sdngadungan02@gmail.com
                     </Typography>
                   </div>
