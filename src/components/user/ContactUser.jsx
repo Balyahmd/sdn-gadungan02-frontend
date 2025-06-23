@@ -50,19 +50,6 @@ export default function ContactUser() {
                 </div>
               </div>
 
-              <div className="bg-blue-gray-50/50 rounded-lg p-4 min-w-[150px] flex-2">
-                <div className="flex items-center">
-                  <div className="bg-green-100 p-2 rounded-full mr-4">
-                    <PhoneIcon className="h-5 w-5 text-darkGreenColor1" />
-                  </div>
-                  <div>
-                    <Typography color="gray" className="font-normal">
-                      0287-381820
-                    </Typography>
-                  </div>
-                </div>
-              </div>
-
               <div className="bg-blue-gray-50/50 rounded-lg p-4 min-w-[250px] flex-2">
                 <div className="flex items-center">
                   <div className="bg-green-100 p-2 rounded-full mr-4">
