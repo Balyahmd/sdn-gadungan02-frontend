@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 import {
   NewspaperIcon,
   UserGroupIcon,
@@ -25,8 +26,14 @@ const SideBarAdmin = () => {
   }, []);
 
   const handleLogout = async () => {
-    logout();
-    navigate("/login");
+    try {
+      await logout();
+      toast.success("Berhasil logout");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Gagal logout");
+    }
   };
 
   const navItems = [
@@ -90,6 +97,7 @@ const SideBarAdmin = () => {
         </nav>
       </div>
       <div className="p-4 border-t border-gray-700">
+        <ToastContainer />
         <button
           onClick={handleLogout}
           className="flex items-center w-full px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white rounded">

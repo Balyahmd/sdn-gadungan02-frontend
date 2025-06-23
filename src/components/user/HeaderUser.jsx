@@ -4,21 +4,31 @@ import {
   Typography,
   IconButton,
   Input,
+  Button,
 } from "@material-tailwind/react";
 import {
   Bars3Icon,
   XMarkIcon,
-  MagnifyingGlassIcon,
   PhoneIcon,
   EnvelopeIcon,
   MapPinIcon,
+  HomeIcon,
+  StarIcon,
+  AcademicCapIcon,
+  GlobeAltIcon,
+  BellAlertIcon,
+  UserGroupIcon,
+  ChevronDownIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/solid";
 import logo from "../../assets/logo_sdn_gadungan02.png";
+import { Link } from "react-router-dom";
 
 export default function Header() {
   const [openNav, setOpenNav] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  //   const [searchQuery, setSearchQuery] = useState("");
+  const [openMobileProfil, setOpenMobileProfil] = useState(false);
+  const [profilDropdown, setProfilDropdown] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -30,27 +40,36 @@ export default function Header() {
     {
       name: "Beranda",
       href: "/",
-      icon: <Bars3Icon className="h-5 w-5 mr-2" />,
-    },
-    {
-      name: "Visi dan Misi",
-      href: "/visi-misi",
-      icon: <MagnifyingGlassIcon className="h-5 w-5 mr-2" />,
+      icon: <HomeIcon className="h-5 w-5 mr-2" />,
     },
     {
       name: "Virtual Tour 360",
       href: "/virtual-tour",
-      icon: <MapPinIcon className="h-5 w-5 mr-2" />,
+      icon: <GlobeAltIcon className="h-5 w-5 mr-2" />,
     },
+
     {
-      name: "Profil Sekolah",
-      href: "/sambutan-kepala-sekolah",
-      icon: <EnvelopeIcon className="h-5 w-5 mr-2" />,
-    },
-    {
-      name: "Postingan",
+      name: "Berita & Info Sekolah",
       href: "/postingan",
-      icon: <PhoneIcon className="h-5 w-5 mr-2" />,
+      icon: <BellAlertIcon className="h-5 w-5 mr-2" />,
+    },
+  ];
+
+  const navItemsDropdown = [
+    {
+      name: "Guru & Staff",
+      href: "/daftar-guru",
+      icon: <UserGroupIcon className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Visi dan Misi",
+      href: "/visi-misi",
+      icon: <StarIcon className="h-5 w-5 mr-2" />,
+    },
+    {
+      name: "Sejarah",
+      href: "/sejarah-sekolah",
+      icon: <BookOpenIcon className="h-5 w-5 mr-2" />,
     },
   ];
 
@@ -62,11 +81,10 @@ export default function Header() {
           isScrolled ? "h-0 overflow-hidden py-0" : "py-2"
         }`}>
         <div className="container mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2">
-          <div className="flex items-center">
+          <div className="w-full sm:w-auto flex justify-center sm:justify-start items-center">
             <MapPinIcon className="h-4 w-4 mr-2" />
-            <span className="text-sm">
-              Dsn. Sukomulyo RT.04 RW.01, Gadungan, Kec. Gandusari, Kab. Blitar,
-              Jawa Timur.
+            <span className="text-sm text-center sm:text-left">
+              Ds. Sukomulyo 04/01, Gadungan, Gandusari, Blitar, Jawa Timur.
             </span>
           </div>
           <div className="hidden sm:flex items-center">
@@ -95,23 +113,53 @@ export default function Header() {
 
           {/* Desktop Nav + Search */}
           <div className="hidden lg:flex items-center gap-8">
-            <ul className="flex gap-8">
-              {" "}
-              {/* Increased gap */}
+            <ul className="flex gap-3">
               {navItems.map((item) => (
                 <Typography
                   as="li"
                   key={item.name}
                   variant="paragraph"
                   className="font-medium">
-                  <a
-                    href={item.href}
-                    className="flex items-center py-2 px-3 text-blackColor transition-colors text-lg" /* Larger text and padding */
-                  >
+                  <Link
+                    to={item.href}
+                    className="flex items-center py-2 px-3 text-blackColor text-lg transition-colors duration-300 hover:text-green-700">
+                    {item.icon}
                     {item.name}
-                  </a>
+                  </Link>
                 </Typography>
               ))}
+              <Typography
+                as="li"
+                variant="paragraph"
+                className="relative font-medium"
+                onMouseEnter={() => setProfilDropdown(true)}
+                onMouseLeave={() => setProfilDropdown(false)}>
+                <Link to="/sambutan-kepala-sekolah">
+                  <button
+                    variant="button"
+                    className="flex items-center py-2 px-3 text-blackColor text-lg transition-colors duration-300 hover:text-green-700 cursor-pointer">
+                    <AcademicCapIcon className="h-5 w-5 mr-2" />
+                    Profil Sekolah
+                    <ChevronDownIcon className="h-5 w-5 ml-2" />
+                  </button>
+                </Link>
+
+                {/* Dropdown menu */}
+                {profilDropdown && (
+                  <ul className="absolute top-full left-0 mt-1 w-48 bg-white border rounded shadow-lg z-50">
+                    {navItemsDropdown.map((item) => (
+                      <li key={item.name}>
+                        <Link to={item.href}>
+                          <a className="flex items-center px-4 py-2 text-blackColor hover:bg-green-100 hover:text-green-700 transition-colors">
+                            {item.icon}
+                            {item.name}
+                          </a>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Typography>
             </ul>
 
             {/* Search Button - Desktop */}
@@ -129,17 +177,58 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
         {openNav && (
           <div className="lg:hidden mt-4 pb-4 space-y-3 container mx-auto">
-            {navItems.map((item) => (
-              <a
-                key={`mobile-${item.name}`}
-                href={item.href}
-                className="block p-3 text-lg text-blackColor hover:bg-gray-100 rounded-lg text-center">
-                {item.name}
+            <Link to="/">
+              <a className="p-3 text-lg text-blackColor hover:bg-gray-100 rounded-lg text-center flex items-center justify-center gap-2">
+                <HomeIcon className="h-5 w-5" />
+                Beranda
               </a>
-            ))}
+            </Link>
+
+            {/* Profil Sekolah dengan submenu toggle */}
+            <div>
+              <Link to="/sambutan-kepala-sekolah">
+                <button
+                  onClick={() => setOpenMobileProfil(!openMobileProfil)}
+                  className="w-full flex justify-center items-center gap-2 p-3 text-lg text-blackColor hover:bg-gray-100 rounded-lg transition-colors">
+                  <AcademicCapIcon className="h-5 w-5" />
+                  Profil Sekolah
+                  <ChevronDownIcon
+                    className={`h-4 w-4 transition-transform duration-300 ${
+                      openMobileProfil ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              </Link>
+              {openMobileProfil && (
+                <div className="flex justify-center mx-5">
+                  <div className="flex flex-col items-center gap-2 bg-gray-200 rounded-lg w-full">
+                    {navItemsDropdown.map((item) => (
+                      <Link key={item.name} to={item.href}>
+                        <a className="flex items-center p-2 text-blackColor hover:bg-green-100 hover:text-green-700 rounded transition-colors">
+                          {item.icon}
+                          {item.name}
+                        </a>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <Link to="/virtual-tour">
+              <a className="p-3 text-lg text-blackColor hover:bg-gray-100 rounded-lg text-center flex items-center justify-center gap-2">
+                <GlobeAltIcon className="h-5 w-5" />
+                Virtual Tour 360
+              </a>
+            </Link>
+
+            <Link to="/postingan">
+              <a className="p-3 text-lg text-blackColor hover:bg-gray-100 rounded-lg text-center flex items-center justify-center gap-2">
+                <BellAlertIcon className="h-5 w-5" />
+                Berita & Info Sekolah
+              </a>
+            </Link>
           </div>
         )}
       </Navbar>

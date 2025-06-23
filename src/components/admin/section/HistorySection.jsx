@@ -9,7 +9,7 @@ import {
   PencilIcon,
   CheckIcon,
   XMarkIcon,
-  UserCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/solid";
 
 export default function HistorySection({
@@ -23,77 +23,49 @@ export default function HistorySection({
 }) {
   return (
     <div>
-      <Card
-        placeholder=""
-        onPointerEnterCapture={() => {}}
-        onPointerLeaveCapture={() => {}}>
-        <CardBody
-          placeholder=""
-          onPointerEnterCapture={() => {}}
-          onPointerLeaveCapture={() => {}}>
+      <Card className="mb-6">
+        <CardBody>
           {isEditing !== "history" ? (
-            /* Mode Tampilan */
             <>
               <div className="flex justify-between items-center mb-4">
-                <Typography
-                  variant="h4"
-                  className="font-bold"
-                  placeholder=""
-                  onPointerEnterCapture={() => {}}
-                  onPointerLeaveCapture={() => {}}>
+                <Typography variant="h4" className="font-bold">
                   Sejarah Sekolah
                 </Typography>
                 <Button
                   size="sm"
                   color="blue"
                   onClick={() => startEditing("history")}
-                  className="flex items-center gap-2"
-                  placeholder=""
-                  onPointerEnterCapture={() => {}}
-                  onPointerLeaveCapture={() => {}}>
+                  className="flex items-center gap-2">
                   <PencilIcon className="h-4 w-4" />
                   Edit
                 </Button>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <Typography
-                  className="whitespace-pre-line"
-                  placeholder=""
-                  onPointerEnterCapture={() => {}}
-                  onPointerLeaveCapture={() => {}}>
-                  {historyData.text_sejarah}
+              <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                <Typography className="whitespace-pre-line">
+                  {historyData.text_sejarah || "Sejarah sekolah belum tersedia"}
                 </Typography>
               </div>
-
-              {historyData?.author && (
-                <div className="flex items-center gap-2 text-gray-500 text-sm">
-                  <UserCircleIcon className="h-4 w-4" />
-                  <span>
-                    Terakhir diperbarui oleh: {historyData.author.username} •
-                    {new Date(
-                      historyData.updatedAt || historyData.createdAt
-                    ).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <ClockIcon className="h-4 w-4" />
+                <span>
+                  Terakhir diperbarui pada:{" "}
+                  {new Date(
+                    historyData.updatedAt || historyData.createdAt
+                  ).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
             </>
           ) : (
-            /* Mode Edit */
             <>
               <div className="flex justify-between items-center mb-4">
-                <Typography
-                  variant="h4"
-                  className="font-bold"
-                  placeholder=""
-                  onPointerEnterCapture={() => {}}
-                  onPointerLeaveCapture={() => {}}>
+                <Typography variant="h4" className="font-bold">
                   Edit Sejarah Sekolah
                 </Typography>
                 <div className="flex gap-2">
@@ -101,10 +73,7 @@ export default function HistorySection({
                     size="sm"
                     color="green"
                     onClick={saveHistoryEdit}
-                    className="flex items-center gap-2"
-                    placeholder=""
-                    onPointerEnterCapture={() => {}}
-                    onPointerLeaveCapture={() => {}}>
+                    className="flex items-center gap-2">
                     <CheckIcon className="h-4 w-4" />
                     Simpan
                   </Button>
@@ -113,20 +82,14 @@ export default function HistorySection({
                     color="red"
                     variant="outlined"
                     onClick={() => setIsEditing(false)}
-                    className="flex items-center gap-2"
-                    placeholder=""
-                    onPointerEnterCapture={() => {}}
-                    onPointerLeaveCapture={() => {}}>
+                    className="flex items-center gap-2">
                     <XMarkIcon className="h-4 w-4" />
                     Batal
                   </Button>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <div className="p-3 bg-gray-50 rounded mb-4">
-                  {historyData.text_sejarah}
-                </div>
+              <div className="mb-6">
                 <Textarea
                   label="Sejarah Sekolah"
                   rows={8}
@@ -134,24 +97,19 @@ export default function HistorySection({
                   onChange={(e) =>
                     setEditForm({ ...editForm, history: e.target.value })
                   }
-                  onPointerEnterCapture={() => {}}
-                  onPointerLeaveCapture={() => {}}
+                  className="mb-2"
                 />
+                <p className="text-gray-500 text-sm">
+                  Tuliskan sejarah sekolah dengan jelas dan kronologis
+                </p>
               </div>
 
-              <Typography
-                variant="small"
-                className="text-gray-500"
-                placeholder=""
-                onPointerEnterCapture={() => {}}
-                onPointerLeaveCapture={() => {}}>
-                Tips:
-                <ul className="list-disc pl-5 mt-1">
-                  <li>Gunakan format paragraf yang jelas</li>
-                  <li>Ceritakan sejarah sekolah secara kronologis</li>
-                  <li>Sertakan pencapaian penting sekolah</li>
-                </ul>
-              </Typography>
+              <p className="text-gray-500 text-sm">Tips:</p>
+              <ul className="list-disc pl-5 mt-1 text-sm text-gray-500">
+                <li>Gunakan format paragraf yang jelas</li>
+                <li>Ceritakan sejarah sekolah secara kronologis</li>
+                <li>Sertakan pencapaian penting sekolah</li>
+              </ul>
             </>
           )}
         </CardBody>

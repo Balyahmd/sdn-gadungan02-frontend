@@ -10,72 +10,68 @@ import {
   Button,
 } from "@material-tailwind/react";
 import { MagnifyingGlassIcon, CalendarIcon } from "@heroicons/react/24/outline";
+import { NewspaperIcon } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
 import PostService from "../../services/postService";
 import { Pagination } from "../../components/Pagination";
 
 const FeedPage = () => {
-  const [state, setState] = useState({
-    posts: [],
-    loading: true,
-    searchTerm: "",
-    selectedCategory: "Semua",
-    currentPage: 1,
-    postsPerPage: 6,
-  });
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("Semua");
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6;
 
-  const {
-    posts,
-    loading,
-    searchTerm,
-    selectedCategory,
-    currentPage,
-    postsPerPage,
-  } = state;
-
-  const setStateValue = (key, value) => {
-    setState((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const categories = ["Semua", "Prestasi", "Kegiatan", "Pengumuman"];
-
-  const fetchPosts = async () => {
-    try {
-      setStateValue("loading", true);
-      const response = await PostService.getPosts(searchTerm);
-      setStateValue("posts", response.data || []);
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-    } finally {
-      setStateValue("loading", false);
-    }
-  };
+  const categories = ["Semua", "prestasi", "kegiatan", "pengumuman"];
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      fetchPosts();
-    }, 500);
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await PostService.getPosts(); // Ambil semua postingan
+        setPosts(response.data || []);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, []);
 
-  // Filter kategori
-  const filteredPosts = posts.filter(
-    (post) => selectedCategory === "Semua" || post.kategori === selectedCategory
-  );
+  // Reset ke halaman 1 saat search atau kategori berubah
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
 
-  const handlePageChange = (pageNumber) => {
-    setStateValue("currentPage", pageNumber);
-  };
+  // Filter berdasarkan kategori & search term
+  const filteredPosts = posts.filter((post) => {
+    const matchCategory =
+      selectedCategory === "Semua" || post.kategori === selectedCategory;
+    const matchSearch = post.title_postingan
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  // Pagination
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-300px)] bg-gray-50 py-8 px-4 mb-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center p-3 rounded-full bg-blue-100 mb-4">
+            <NewspaperIcon className="h-8 w-8 text-green-700" />
+          </div>
           <Typography
             variant="h1"
-            className="text-3xl font-bold text-gray-900 mb-2">
-            Semua Postingan
+            className="text-2xl md:text-4xl font-bold text-gray-900 mb-2">
+            Berita & Info Sekolah
           </Typography>
           <Typography variant="lead" className="text-gray-600">
             Informasi terbaru seputar SDN Gadungan 02
@@ -89,17 +85,17 @@ const FeedPage = () => {
               label="Cari postingan..."
               icon={<MagnifyingGlassIcon className="h-5 w-5" />}
               value={searchTerm}
-              onChange={(e) => setStateValue("searchTerm", e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div>
             <Select
               label="Kategori"
               value={selectedCategory}
-              onChange={(val) => setStateValue("selectedCategory", val)}>
+              onChange={(val) => setSelectedCategory(val)}>
               {categories.map((cat, index) => (
                 <Option key={index} value={cat}>
-                  {cat}
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </Option>
               ))}
             </Select>
@@ -112,14 +108,14 @@ const FeedPage = () => {
             <div className="col-span-full flex justify-center items-center min-h-[200px]">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             </div>
-          ) : filteredPosts.length === 0 ? (
+          ) : currentPosts.length === 0 ? (
             <div className="col-span-full text-center py-8">
               <Typography variant="h6" className="text-gray-600">
                 Tidak ada postingan yang ditemukan
               </Typography>
             </div>
           ) : (
-            filteredPosts.map((post) => (
+            currentPosts.map((post) => (
               <Card
                 key={post.id}
                 className="shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -138,9 +134,9 @@ const FeedPage = () => {
                     <Chip
                       value={post.kategori}
                       color={
-                        post.kategori === "Pengumuman"
+                        post.kategori.toLowerCase() === "pengumuman"
                           ? "blue"
-                          : post.kategori === "Prestasi"
+                          : post.kategori.toLowerCase() === "prestasi"
                           ? "green"
                           : "amber"
                       }
@@ -151,6 +147,7 @@ const FeedPage = () => {
                     className="mb-2 text-lg font-bold line-clamp-2">
                     {post.title_postingan}
                   </Typography>
+
                   <Typography
                     variant="paragraph"
                     className="mb-4 text-gray-600 text-sm line-clamp-3">
@@ -167,7 +164,7 @@ const FeedPage = () => {
                         })}
                       </Typography>
                     </div>
-                    <Link to={`/posts/${post.id}`}>
+                    <Link to={`/postingan/${post.id}`}>
                       <Button
                         variant="text"
                         size="sm"
@@ -182,12 +179,13 @@ const FeedPage = () => {
           )}
         </div>
 
-        {!loading && filteredPosts.length > 0 && (
+        {/* Pagination */}
+        {!loading && filteredPosts.length > postsPerPage && (
           <div className="mt-12 flex justify-center">
             <Pagination
               currentPage={currentPage}
               totalPages={Math.ceil(filteredPosts.length / postsPerPage)}
-              onPageChange={handlePageChange}
+              onPageChange={(pageNumber) => setCurrentPage(pageNumber)}
             />
           </div>
         )}

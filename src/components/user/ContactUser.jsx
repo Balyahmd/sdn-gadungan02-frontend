@@ -14,7 +14,7 @@ export default function ContactUser() {
         className="fixed inset-0 -z-10 bg-fixed bg-center bg-cover opacity-20"
         style={{
           backgroundImage:
-            "url('https://img.freepik.com/premium-vector/hand-drawn-school-education-seamless-pattern_698782-394.jpg?w=2000')",
+            "url('https://img.freepik.com/premium-vector/hand-drawn-school-education-seamless-pattern_698782-394.jpg')",
           transform: "translate3d(0,0,0)",
         }}></div>
       {/* Konten Contact */}
@@ -24,7 +24,7 @@ export default function ContactUser() {
           <CardHeader
             floated={false}
             shadow={false}
-            className="text-center p-6 bg-mediumGreenColor1">
+            className="text-center p-6 bg-green-700">
             <Typography variant="h3" className="text-white">
               Hubungi Kami
             </Typography>
@@ -81,12 +81,12 @@ export default function ContactUser() {
             <div className="bg-gray-200 rounded-lg overflow-hidden h-[400px]">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3318.106460318399!2d112.2955334!3d-8.0132006!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e788d8504a041f1%3A0xe8025dec29f0af9a!2sSDN%20Gadungan%2002!5e1!3m2!1sen!2sid!4v1745917787552!5m2!1sen!2sid"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
+                className="w-full h-full border-0"
+                allowFullScreen
                 loading="lazy"
-                title="Peta Lokasi Sekolah"></iframe>
+                title="Peta Lokasi SDN Gadungan 02"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </CardBody>
         </Card>

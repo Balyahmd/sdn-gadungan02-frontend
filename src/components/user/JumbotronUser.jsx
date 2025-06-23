@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router";
 
 import { Typography, IconButton } from "@material-tailwind/react";
+
 import {
   MagnifyingGlassIcon,
   Bars3Icon,
@@ -30,7 +31,7 @@ const JumbotronUser = () => {
     {
       image: jumbo3,
       title: "Fasilitas Modern",
-      subtitle: "Lingkungan Belajar yang Nyaman dan Berteknologi",
+      subtitle: "Lingkungan Belajar yang Nyaman",
     },
   ];
 
@@ -68,12 +69,19 @@ const JumbotronUser = () => {
               </Typography>
               <div className="flex gap-4 justify-center">
                 <Link to="/sambutan-kepala-sekolah">
-                  <button className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-6 rounded">
+                  <button className="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-8 rounded-xl">
                     Profil Sekolah
                   </button>
                 </Link>
 
-                <button className="bg-transparent hover:bg-white text-white hover:text-green-800 font-bold py-2 px-6 border border-white rounded">
+                <button
+                  onClick={() =>
+                    window.open(
+                      "https://linktr.ee/sdngadungan02_Blitar",
+                      "_blank"
+                    )
+                  }
+                  className="bg-transparent hover:bg-white text-white hover:text-green-800 font-bold py-2 px-8 border border-white rounded-xl">
                   Kontak Kami
                 </button>
               </div>

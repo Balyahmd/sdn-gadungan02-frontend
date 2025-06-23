@@ -55,6 +55,7 @@ const LoginPage = () => {
         icon: <XMarkIcon className="h-5 w-5" />,
         position: "top-right",
         autoClose: 3000,
+        theme: "colored",
       });
       return;
     }
@@ -151,6 +152,7 @@ const LoginPage = () => {
 
           <div className="mb-6">
             <div className="relative">
+              <label className="block mb-2">Password</label>
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -163,7 +165,7 @@ const LoginPage = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm text-gray-600 focus:outline-none">
+                className="absolute right-2 top-14 transform -translate-y-1/2 text-sm text-gray-600 focus:outline-none">
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>

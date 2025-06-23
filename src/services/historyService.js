@@ -12,7 +12,11 @@ const HistoryService = {
   },
   updateHistory: async (formData) => {
     try {
-      const response = await api.put("/history", formData);
+      const response = await api.put("/history", formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       console.log("Riwayat berhasil diperbarui:", response.data);
       return response.data;
     } catch (error) {

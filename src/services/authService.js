@@ -1,12 +1,4 @@
-// services/authService.js
-import axios from "axios";
-
-// Create axios instance with base configuration
-const api = axios.create({
-  baseURL: "http://localhost:3000/api",
-  withCredentials: true,
-  timeout: 10000,
-});
+import api from "../utils/api";
 
 // Request interceptor for adding token
 api.interceptors.request.use((config) => {
@@ -22,10 +14,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+      // Only remove token and redirect if it's not a verify request
+      if (!error.config.url.includes("/auth/verify")) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);
@@ -64,7 +59,7 @@ const login = async (username, password) => {
     };
   }
 };
-// services/authService.js
+
 const verify = async () => {
   try {
     const response = await api.get("/auth/verify");
@@ -84,6 +79,7 @@ const verify = async () => {
     };
   } catch (error) {
     console.error("Verify request failed:", error);
+    // Don't remove token on verify failure, just return error
     return {
       success: false,
       message: "Authentication service unavailable",
@@ -98,9 +94,10 @@ const logout = async () => {
   } catch (error) {
     console.error("Logout request failed:", error);
   } finally {
-    // Always clean up client-side
+    // Always clean up client-side on logout
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("user");
     delete api.defaults.headers.common["Authorization"];
     console.log("Client-side auth cleaned up");
   }

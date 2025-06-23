@@ -40,7 +40,7 @@ const ManageUserPage = () => {
     username: "",
     email: "",
     password: "",
-    role: "admin",
+    role: "",
   });
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
@@ -53,10 +53,6 @@ const ManageUserPage = () => {
       console.log(response.data.length);
       setUsers(response.data.data);
     } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
       console.error("Error fetching users:", error);
       toast.error(error.response?.data?.message || "Failed to fetch users");
     } finally {
@@ -151,11 +147,9 @@ const ManageUserPage = () => {
 
     try {
       if (isEditing) {
-        // eslint-disable-next-line no-undef
         await api.put(`/users/${currentUser.id}`, currentUser);
         toast.success("User berhasil diupdate");
       } else {
-        // eslint-disable-next-line no-undef
         await api.post("/users", currentUser);
         toast.success("User berhasil ditambahkan");
       }
@@ -175,7 +169,7 @@ const ManageUserPage = () => {
     try {
       await api.delete(`/users/${userToDelete}`);
 
-      toast.success("User deleted successfully");
+      toast.success("User berhasil dihapus");
       fetchUsers();
       handleCloseDeleteModal();
     } catch (error) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Typography, Spinner } from "@material-tailwind/react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import HistoryService from "../../services/historyService.js";
 import VisiMisiService from "../../services/visiMisiService.js";
 import StatistikSection from "../../components/admin/section/StatistikSection.jsx";
@@ -9,13 +9,19 @@ import NavigationsTabs from "../../components/admin/NavigationsTabs";
 import VisionMissionSection from "../../components/admin/section/VisiMissionSection";
 
 const DashboardPage = () => {
-  // State Management
   const [activeTab, setActiveTab] = useState("vision-mission");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Data States
-  const [historyData, setHistoryData] = useState(null);
+  const [historyData, setHistoryData] = useState({
+    id: null,
+    text_sejarah: "Memuat sejarah sekolah...",
+    author: null,
+    createdAt: null,
+    updatedAt: null,
+  });
+
   const [visiMisiData, setVisiMisiData] = useState({
     id: null,
     visi: "Memuat visi sekolah...",
@@ -44,8 +50,8 @@ const DashboardPage = () => {
       const historyResponse = await HistoryService.getHistory();
       setHistoryData({
         id: historyResponse.data.id,
-        text:
-          historyResponse.data.text_history || "Sejarah sekolah belum tersedia",
+        text_sejarah: historyResponse.data.text_sejarah,
+        user_username: historyResponse.data.user_username,
         author: historyResponse.data.author,
         createdAt: historyResponse.data.created_at,
         updatedAt: historyResponse.data.updated_at,
@@ -85,7 +91,6 @@ const DashboardPage = () => {
       setIsLoading(false);
     } catch (error) {
       console.error("Gagal memuat data:", error);
-      toast.error("Gagal memuat data");
       setIsLoading(false);
     }
   };
@@ -106,7 +111,7 @@ const DashboardPage = () => {
       goals: Array.isArray(visiMisiData.tujuan)
         ? [...visiMisiData.tujuan]
         : [visiMisiData.tujuan],
-      history: historyData?.text || "",
+      history: historyData.text_sejarah,
     });
     setIsEditing(section);
   };
@@ -130,6 +135,7 @@ const DashboardPage = () => {
           ? response.data.text_tujuan
           : [response.data.text_tujuan],
         author: response.data.author,
+        user_username: response.data.user_username,
         createdAt: response.data.created_at,
         updatedAt: response.data.updated_at,
       });
@@ -150,7 +156,7 @@ const DashboardPage = () => {
 
       setHistoryData({
         id: response.data.id,
-        text_sejarah: editForm.history,
+        text_sejarah: response.data.text_sejarah,
         author: response.data.author,
         createdAt: response.data.created_at,
         updatedAt: response.data.updated_at,
@@ -216,6 +222,8 @@ const DashboardPage = () => {
 
       <StatistikSection />
       <NavigationsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+      <ToastContainer />
+
       {activeTab === "vision-mission" && (
         <VisionMissionSection
           isEditing={isEditing}

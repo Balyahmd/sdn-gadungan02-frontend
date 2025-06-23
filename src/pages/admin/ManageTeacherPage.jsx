@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import TeacherService from "../../services/teacherService";
 import imagePeople from "../../assets/image_people.jpg";
@@ -31,66 +30,37 @@ import {
   PhotoIcon,
 } from "@heroicons/react/24/solid";
 import { Pagination } from "../../components/Pagination";
+
 const ManageTeacherPage = () => {
-  const [state, setState] = useState({
-    teachers: [],
-    loading: true,
-    searchTerm: "",
-    openModal: false,
-    isEditing: false,
-    currentPage: 1,
-    currentTeacher: {
-      id: "",
-      nama_guru: "",
-      pas_foto: "",
-      nip: "",
-      keterangan_guru: "",
-    },
-    openDeleteModal: false,
-    teacherToDelete: null,
-    imagePreview: "",
-    imageFile: null,
-    isSubmitting: false,
-    errors: {},
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentTeacher, setCurrentTeacher] = useState({
+    id: "",
+    nama_guru: "",
+    pas_foto: "",
+    nip: "",
+    keterangan_guru: "",
   });
-
-  const navigate = useNavigate();
-
-  const {
-    teachers,
-    loading,
-    searchTerm,
-    openModal,
-    isEditing,
-    currentPage,
-    currentTeacher,
-    openDeleteModal,
-    teacherToDelete,
-    imagePreview,
-    imageFile,
-    isSubmitting,
-    errors,
-  } = state;
-
-  const setStateValue = (key, value) => {
-    setState((prev) => ({ ...prev, [key]: value }));
-  };
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const fetchTeachers = async () => {
     try {
-      setStateValue("loading", true);
+      setLoading(true);
       const response = await TeacherService.getTeachers(searchTerm);
-      console.log(response.data.length);
-      setStateValue("teachers", response.data || []); // Changed from response.data.data to response.data
+      setTeachers(response.data || []);
     } catch (error) {
       console.error("Error fetching teachers:", error);
-      toast.error("Gagal memuat data guru");
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
     } finally {
-      setStateValue("loading", false);
+      setLoading(false);
     }
   };
 
@@ -104,31 +74,31 @@ const ManageTeacherPage = () => {
 
   const handleOpenModal = (teacher = null) => {
     if (teacher) {
-      setStateValue("currentTeacher", teacher);
-      setStateValue("imagePreview", teacher.pas_foto || "");
-      setStateValue("isEditing", true);
+      setCurrentTeacher(teacher);
+      setImagePreview(teacher.pas_foto || "");
+      setIsEditing(true);
     } else {
-      setStateValue("currentTeacher", {
+      setCurrentTeacher({
         id: "",
         nama_guru: "",
         pas_foto: "",
         nip: "",
         keterangan_guru: "",
       });
-      setStateValue("imagePreview", "");
-      setStateValue("imageFile", null);
-      setStateValue("isEditing", false);
+      setImagePreview("");
+      setImageFile(null);
+      setIsEditing(false);
     }
-    setStateValue("errors", {});
-    setStateValue("openModal", true);
+    setErrors({});
+    setOpenModal(true);
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setStateValue("imageFile", file);
+      setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setStateValue("imagePreview", reader.result);
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -137,23 +107,27 @@ const ManageTeacherPage = () => {
     const newErrors = {};
     if (!currentTeacher.nama_guru) newErrors.nama_guru = "Nama wajib diisi";
     if (!currentTeacher.nip) newErrors.nip = "NIP wajib diisi";
+    if (currentTeacher.nip && isNaN(currentTeacher.nip))
+      newErrors.nip = "NIP harus berupa angka";
+    if (!currentTeacher.keterangan_guru)
+      newErrors.keterangan_guru = "Keterangan guru wajib diisi";
     return newErrors;
   };
 
   const handleSaveTeacher = async () => {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
-      setStateValue("errors", formErrors);
+      setErrors(formErrors);
       return;
     }
 
-    setStateValue("isSubmitting", true);
+    setIsSubmitting(true);
 
     try {
       const formData = new FormData();
-      formData.append("nama_guru", currentTeacher.nama_guru);
-      formData.append("nip", currentTeacher.nip);
-      formData.append("keterangan_guru", currentTeacher.keterangan_guru);
+      formData.append("nama_guru", currentTeacher.nama_guru.trim());
+      formData.append("nip", currentTeacher.nip.trim());
+      formData.append("keterangan_guru", currentTeacher.keterangan_guru.trim());
 
       if (imageFile) {
         formData.append("pas_foto", imageFile);
@@ -169,28 +143,24 @@ const ManageTeacherPage = () => {
         toast.success("Guru berhasil ditambahkan");
       }
 
-      setStateValue("openModal", false);
       await fetchTeachers();
-      toast.success(`Guru berhasil ${isEditing ? "diupdate" : "ditambahkan"}`);
+      setOpenModal(false);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error saving teacher:", error);
       toast.error(
         error.response?.data?.message ||
           `Gagal ${isEditing ? "mengupdate" : "menambahkan"} guru`
       );
     } finally {
-      setStateValue("isSubmitting", false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteTeacher = async () => {
     try {
       await TeacherService.deleteTeacher(teacherToDelete);
-      setStateValue(
-        "teachers",
-        teachers.filter((t) => t.id !== teacherToDelete)
-      );
-      setStateValue("openDeleteModal", false);
+      setTeachers(teachers.filter((t) => t.id !== teacherToDelete));
+      setOpenDeleteModal(false);
       toast.success("Guru berhasil dihapus");
     } catch (error) {
       console.error("Error deleting teacher:", error);
@@ -200,7 +170,7 @@ const ManageTeacherPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setStateValue("currentTeacher", { ...currentTeacher, [name]: value });
+    setCurrentTeacher({ ...currentTeacher, [name]: value });
   };
 
   if (loading) {
@@ -213,10 +183,10 @@ const ManageTeacherPage = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <ToastContainer />
       <Typography variant="h2" className="text-2xl font-bold mb-6">
         Manajemen Guru
       </Typography>
-      <ToastContainer />
 
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div className="w-full md:w-1/2">
@@ -224,7 +194,7 @@ const ManageTeacherPage = () => {
             label="Cari Guru..."
             icon={<MagnifyingGlassIcon className="h-5 w-5" />}
             value={searchTerm}
-            onChange={(e) => setStateValue("searchTerm", e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Button
@@ -267,12 +237,17 @@ const ManageTeacherPage = () => {
                 </thead>
                 <tbody>
                   {teachers
+                    .sort(
+                      (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+                    )
                     .slice((currentPage - 1) * 5, currentPage * 5)
                     .map((teacher, index) => (
                       <tr
                         key={teacher.id}
                         className="border-b border-blue-gray-100">
-                        <td className="p-4">{index + 1}</td>
+                        <td className="p-4">
+                          {(currentPage - 1) * 5 + index + 1}
+                        </td>
                         <td className="p-4">
                           <Avatar
                             src={teacher.pas_foto || imagePeople}
@@ -304,8 +279,8 @@ const ManageTeacherPage = () => {
                                 variant="text"
                                 color="red"
                                 onClick={() => {
-                                  setStateValue("teacherToDelete", teacher.id);
-                                  setStateValue("openDeleteModal", true);
+                                  setTeacherToDelete(teacher.id);
+                                  setOpenDeleteModal(true);
                                 }}>
                                 <TrashIcon className="h-5 w-5" />
                               </IconButton>
@@ -320,7 +295,7 @@ const ManageTeacherPage = () => {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={Math.ceil(teachers.length / 5)}
-                  onPageChange={(page) => setStateValue("currentPage", page)}
+                  onPageChange={(page) => setCurrentPage(page)}
                 />
               </div>
             </div>
@@ -329,10 +304,7 @@ const ManageTeacherPage = () => {
       </Card>
 
       {/* Add/Edit Modal */}
-      <Dialog
-        open={openModal}
-        handler={() => setStateValue("openModal", false)}
-        size="xl">
+      <Dialog open={openModal} handler={() => setOpenModal(false)} size="xl">
         <DialogHeader>
           {isEditing ? "Edit Data Guru" : "Tambah Guru Baru"}
         </DialogHeader>
@@ -413,7 +385,7 @@ const ManageTeacherPage = () => {
           <Button
             variant="text"
             color="red"
-            onClick={() => setStateValue("openModal", false)}
+            onClick={() => setOpenModal(false)}
             className="mr-1"
             disabled={isSubmitting}>
             <XMarkIcon className="h-5 w-5" /> Batal
@@ -438,9 +410,7 @@ const ManageTeacherPage = () => {
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Dialog
-        open={openDeleteModal}
-        handler={() => setStateValue("openDeleteModal", false)}>
+      <Dialog open={openDeleteModal} handler={() => setOpenDeleteModal(false)}>
         <DialogHeader>Konfirmasi Hapus</DialogHeader>
         <DialogBody>
           Apakah Anda yakin ingin menghapus data guru ini?
@@ -449,7 +419,7 @@ const ManageTeacherPage = () => {
           <Button
             variant="text"
             color="blue-gray"
-            onClick={() => setStateValue("openDeleteModal", false)}
+            onClick={() => setOpenDeleteModal(false)}
             className="mr-1">
             Batal
           </Button>

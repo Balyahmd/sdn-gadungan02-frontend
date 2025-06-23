@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Card,
@@ -11,40 +11,66 @@ import {
   UserGroupIcon,
   TrophyIcon,
   BookOpenIcon,
+  ArrowLongRightIcon,
 } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
+import Teachers from "../../assets/Guru.jpeg";
+import TeacherService from "../../services/teacherService";
+import PostService from "../../services/postService";
 
 const HeadSpeechPage = () => {
   // Data guru contoh
-  const teachers = [
-    {
-      name: "Dr. Siti Aminah, M.Pd",
-      nik: "196512341982032001",
-      position: "Kepala Sekolah",
-      photo: "/teachers/principal.jpg",
-    },
-    {
-      name: "Budi Santoso, S.Pd",
-      nik: "197803121995021002",
-      position: "Wakil Kepala Sekolah",
-      photo: "/teachers/vice-principal.jpg",
-    },
-    {
-      name: "Dewi Lestari, S.Pd",
-      nik: "198204152000122003",
-      position: "Guru Kelas 1",
-      photo: "/teachers/teacher1.jpg",
-    },
-    {
-      name: "Rudi Hermawan, S.Pd",
-      nik: "198511102005011004",
-      position: "Guru Kelas 2",
-      photo: "/teachers/teacher2.jpg",
-    },
-  ];
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm] = useState("");
+  const [posts, setPosts] = useState([]);
+
+  // Fungsi fetch data guru dari API/service
+  const fetchTeachers = async (keyword = "") => {
+    try {
+      setLoading(true);
+      const response = await TeacherService.getTeachers(keyword);
+      setTeachers(response.data || []);
+    } catch (error) {
+      console.error("Error fetching teachers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await PostService.getPosts();
+      setPosts(response.data || []);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts(searchTerm);
+  }, [searchTerm]);
+
+  // useEffect dengan debounce sederhana untuk searchTerm
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      fetchTeachers(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchTerm]);
+  if (loading)
+    return (
+      <div className="text-center py-10">
+        <div className="animate-spin inline-block w-8 h-8 border-4 border-green-700 border-t-transparent rounded-full"></div>
+      </div>
+    );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-[calc(100vh-300px)] bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-16">
@@ -67,7 +93,7 @@ const HeadSpeechPage = () => {
             <Card className="shadow-lg overflow-hidden">
               <div className="relative h-64 bg-gray-800">
                 <img
-                  src="/images/school-building.jpg"
+                  src={Teachers}
                   alt="Gedung SDN Gadungan 02"
                   className="w-full h-full object-cover opacity-80"
                 />
@@ -82,45 +108,56 @@ const HeadSpeechPage = () => {
               </div>
 
               <CardBody className="p-8">
-                <div className="flex flex-col md:flex-row gap-8 items-center mb-10">
-                  <div className="relative">
-                    <Avatar
-                      src="/images/principal.jpg"
-                      alt="Kepala Sekolah"
-                      size="xxl"
-                      className="border-4 border-white shadow-lg"
-                    />
-                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-4 py-1 rounded-full shadow-sm">
-                      <Typography
-                        variant="small"
-                        className="font-bold flex items-center gap-1">
-                        <UserGroupIcon className="h-6 w-10 pr-3" />
-                        Kepala Sekolah
-                      </Typography>
+                {teachers
+                  .filter((teacher) =>
+                    teacher.keterangan_guru
+                      .toLowerCase()
+                      .includes("kepala sekolah")
+                  )
+                  .map((teacher, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col md:flex-row gap-10 items-center mb-10">
+                      <div className="relative mx-5">
+                        <Avatar
+                          src={teacher.pas_foto}
+                          alt={teacher.nama_guru}
+                          size="xxl"
+                          className="border-4 border-white shadow-lg object-cover"
+                        />
+                        <div className="absolute -bottom-5 left-1/2 transform -translate-x-1/2 bg-green-700 text-white px-4 py-1 rounded-full shadow-sm">
+                          <Typography
+                            variant="small"
+                            className="font-bold flex items-center gap-1 whitespace-nowrap">
+                            <UserGroupIcon className="h-6 w-6 pr-1" />
+                            {teacher.keterangan_guru}
+                          </Typography>
+                        </div>
+                      </div>
+                      <div className="text-center md:text-left">
+                        <Typography
+                          variant="h3"
+                          className="text-2xl font-bold text-gray-900 mb-1">
+                          {teacher.nama_guru}
+                        </Typography>
+                        <Typography
+                          variant="paragraph"
+                          className="text-gray-600 mb-4">
+                          {teacher.keterangan_guru} SDN Gadungan 02
+                        </Typography>
+                        <div className="flex justify-center md:justify-start">
+                          <Link to="/sejarah-sekolah">
+                            <Button
+                              variant="filled"
+                              className="flex items-center gap-2 bg-green-700">
+                              <BookOpenIcon className="h-5 w-5" />
+                              Profil Lengkap
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-center md:text-left">
-                    <Typography
-                      variant="h3"
-                      className="text-2xl font-bold text-gray-900 mb-1">
-                      Dr. Siti Aminah, M.Pd
-                    </Typography>
-                    <Typography
-                      variant="paragraph"
-                      className="text-gray-600 mb-4">
-                      Kepala Sekolah SDN Gadungan 02
-                    </Typography>
-                    <Link to="/sejarah-sekolah">
-                      <Button
-                        variant="filled"
-                        //   color="dark"
-                        className="flex items-center gap-2 bg-green-700">
-                        <BookOpenIcon className="h-5 w-5" />
-                        Profil Lengkap
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                  ))}
 
                 <div className="space-y-6">
                   <Typography
@@ -180,13 +217,13 @@ const HeadSpeechPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {teachers.map((teacher, index) => (
+                  {teachers.slice(0, 4).map((teacher, index) => (
                     <div
                       key={index}
                       className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-lg transition-colors">
                       <Avatar
-                        src={teacher.photo}
-                        alt={teacher.name}
+                        src={teacher.pas_foto}
+                        alt={teacher.nama_guru}
                         size="md"
                         className="border-2 border-white shadow"
                       />
@@ -194,74 +231,23 @@ const HeadSpeechPage = () => {
                         <Typography
                           variant="h6"
                           className="font-bold text-gray-800">
-                          {teacher.name}
+                          {teacher.nama_guru}
                         </Typography>
                         <Typography variant="small" className="text-gray-600">
-                          {teacher.position}
+                          {teacher.keterangan_guru}
                         </Typography>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardBody>
+              <Link to="/daftar-guru">
+                <Button variant="text" className="flex items-center gap-2 mb-4">
+                  Lihat Semua jajaran Guru
+                  <ArrowLongRightIcon className="h-5 w-5" />
+                </Button>
+              </Link>
             </Card>
-
-            {/* Visi Misi */}
-            <Card className="shadow-lg bg-green-700 text-white">
-              <CardBody className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <AcademicCapIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <Typography variant="h3" className="text-xl font-bold">
-                    Visi Misi Sekolah
-                  </Typography>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Typography
-                      variant="h5"
-                      className="font-bold mb-2 flex items-center gap-2">
-                      <BookOpenIcon className="h-5 w-5" />
-                      Visi
-                    </Typography>
-                    <Typography variant="paragraph" className="italic">
-                      "Mencerdaskan kehidupan bangsa dengan pendidikan
-                      berkualitas"
-                    </Typography>
-                  </div>
-
-                  <div>
-                    <Typography
-                      variant="h5"
-                      className="font-bold mb-2 flex items-center gap-2">
-                      <BookOpenIcon className="h-5 w-5" />
-                      Misi
-                    </Typography>
-                    <ul className="space-y-2">
-                      <li className="flex items-start gap-2">
-                        <span className="mt-1.5 w-2 h-2 bg-white rounded-full flex-shrink-0"></span>
-                        <span>
-                          Membangun karakter siswa yang berakhlak mulia
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-1.5 w-2 h-2 bg-white rounded-full flex-shrink-0"></span>
-                        <span>
-                          Mengembangkan potensi akademik dan non-akademik
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-1.5 w-2 h-2 bg-white rounded-full flex-shrink-0"></span>
-                        <span>Menghasilkan lulusan yang kompetitif</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-
             {/* Prestasi */}
             <Card className="shadow-lg">
               <CardBody className="p-6">
@@ -277,28 +263,31 @@ const HeadSpeechPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3 bg-amber-50 rounded-lg">
-                    <Typography
-                      variant="small"
-                      className="font-bold text-amber-800 flex items-center gap-2">
-                      <TrophyIcon className="h-4 w-4" />
-                      Juara 1 Lomba Sains
-                    </Typography>
-                    <Typography variant="small" className="text-gray-600">
-                      12 Mei 2023
-                    </Typography>
-                  </div>
-                  <div className="p-3 bg-amber-50 rounded-lg">
-                    <Typography
-                      variant="small"
-                      className="font-bold text-amber-800 flex items-center gap-2">
-                      <TrophyIcon className="h-4 w-4" />
-                      Sekolah Adiwiyata
-                    </Typography>
-                    <Typography variant="small" className="text-gray-600">
-                      28 Agustus 2023
-                    </Typography>
-                  </div>
+                  {posts
+                    .filter((post) => post.kategori === "prestasi")
+                    .slice(0, 3)
+                    .map((post, index) => (
+                      <div key={index} className="p-3 bg-amber-50 rounded-lg">
+                        <Link to={`/postingan/${post.id}`}>
+                          <Typography
+                            variant="small"
+                            className="font-bold text-amber-800 flex items-center gap-2">
+                            <TrophyIcon className="h-4 w-4" />
+                            {post.title_postingan}
+                          </Typography>
+                        </Link>
+                        <Typography variant="small" className="text-gray-600">
+                          {new Date(post.created_at).toLocaleDateString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}
+                        </Typography>
+                      </div>
+                    ))}
                 </div>
               </CardBody>
             </Card>

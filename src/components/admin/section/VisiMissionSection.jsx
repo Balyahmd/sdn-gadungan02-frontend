@@ -10,7 +10,7 @@ import {
   PencilIcon,
   CheckIcon,
   XMarkIcon,
-  UserCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/solid";
 
 export default function VisiMissionSection({
@@ -88,24 +88,21 @@ export default function VisiMissionSection({
                 </div>
               </div>
 
-              {/* Informasi Pembaruan Terakhir */}
-              {visiMisiData.author && (
-                <div className="flex items-center gap-2 text-gray-500 text-sm mt-4">
-                  <UserCircleIcon className="h-4 w-4" />
-                  <span>
-                    Terakhir diperbarui oleh: {visiMisiData.author} •
-                    {new Date(
-                      visiMisiData.updatedAt || visiMisiData.createdAt
-                    ).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-gray-500 text-sm mt-4">
+                <ClockIcon className="h-4 w-4" />
+                <span>
+                  Terakhir diperbarui pada:{" "}
+                  {new Date(
+                    visiMisiData.updatedAt || visiMisiData.createdAt
+                  ).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
             </>
           ) : (
             /* Mode Edit */

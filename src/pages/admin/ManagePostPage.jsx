@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import PostService from "../../services/postService";
 import imageNotFound from "../../assets/image_nonFound.png";
 import { Pagination } from "../../components/Pagination";
+
 import {
   Card,
   CardBody,
@@ -35,68 +35,39 @@ import {
 } from "@heroicons/react/24/solid";
 
 const ManagePostPage = () => {
-  const [state, setState] = useState({
-    posts: [],
-    loading: true,
-    searchTerm: "",
-    open: false,
-    isEdit: false,
-    currentPost: {
-      id: "",
-      title_postingan: "",
-      thumbnail_postingan: "",
-      deskripsi_postingan: "",
-      text_postingan: "",
-      kategori: "",
-      keyword: "",
-    },
-    showFullDescription: {},
-    imagePreview: "",
-    imageFile: null,
-    isSubmitting: false,
-    deleteModalOpen: false,
-    postToDelete: null,
-    errors: {},
-    currentPage: 1,
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [currentPost, setCurrentPost] = useState({
+    id: "",
+    title_postingan: "",
+    thumbnail_postingan: "",
+    deskripsi_postingan: "",
+    text_postingan: "",
+    kategori: "",
+    keyword: "",
   });
-
-  const navigate = useNavigate();
-
-  const {
-    posts,
-    loading,
-    searchTerm,
-    open,
-    isEdit,
-    currentPost,
-    showFullDescription,
-    imagePreview,
-    imageFile,
-    isSubmitting,
-    deleteModalOpen,
-    postToDelete,
-    errors,
-    currentPage,
-  } = state;
-
-  const setStateValue = (key, value) => {
-    setState((prev) => ({ ...prev, [key]: value }));
-  };
+  const [showFullDescription, setShowFullDescription] = useState({});
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchPosts = async () => {
     try {
-      setStateValue("loading", true);
+      setLoading(true);
       const response = await PostService.getPosts(searchTerm);
-      setStateValue("posts", response.data || []);
+      setPosts(response.data || []);
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Gagal memuat postingan");
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
     } finally {
-      setStateValue("loading", false);
+      setLoading(false);
     }
   };
 
@@ -123,11 +94,11 @@ const ManagePostPage = () => {
   const handleSubmit = async () => {
     const formErrors = validateForm();
     if (Object.keys(formErrors).length > 0) {
-      setStateValue("errors", formErrors);
+      setErrors(formErrors);
       return;
     }
 
-    setStateValue("isSubmitting", true);
+    setIsSubmitting(true);
 
     try {
       const formData = new FormData();
@@ -138,11 +109,11 @@ const ManagePostPage = () => {
       formData.append("keyword", currentPost.keyword);
 
       if (imageFile) {
-        formData.append("thumbnail", imageFile);
+        formData.append("thumbnail_postingan", imageFile);
       } else if (isEdit && currentPost.thumbnail_postingan) {
         formData.append("keepExistingImage", "true");
       }
-
+      
       if (isEdit) {
         await PostService.updatePost(currentPost.id, formData);
         toast.success("Postingan berhasil diupdate");
@@ -151,11 +122,8 @@ const ManagePostPage = () => {
         toast.success("Postingan berhasil ditambahkan");
       }
 
-      setStateValue("open", false);
       await fetchPosts();
-      toast.success(
-        `Postingan berhasil ${isEdit ? "diupdate" : "ditambahkan"}`
-      );
+      setOpen(false);
     } catch (error) {
       console.error("Error submitting post:", error);
       toast.error(
@@ -163,18 +131,15 @@ const ManagePostPage = () => {
           `Gagal ${isEdit ? "mengupdate" : "membuat"} postingan`
       );
     } finally {
-      setStateValue("isSubmitting", false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
     try {
       await PostService.deletePost(postToDelete.id);
-      setStateValue(
-        "posts",
-        posts.filter((post) => post.id !== postToDelete.id)
-      );
-      setStateValue("deleteModalOpen", false);
+      setPosts(posts.filter((post) => post.id !== postToDelete.id));
+      setDeleteModalOpen(false);
       toast.success("Postingan berhasil dihapus");
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -184,11 +149,11 @@ const ManagePostPage = () => {
 
   const handleOpen = () => {
     const newOpen = !open;
-    setStateValue("open", newOpen);
+    setOpen(newOpen);
 
     if (!newOpen) {
-      setStateValue("isEdit", false);
-      setStateValue("currentPost", {
+      setIsEdit(false);
+      setCurrentPost({
         id: "",
         title_postingan: "",
         thumbnail_postingan: "",
@@ -197,42 +162,42 @@ const ManagePostPage = () => {
         kategori: "",
         keyword: "",
       });
-      setStateValue("imagePreview", "");
-      setStateValue("imageFile", null);
-      setStateValue("errors", {});
+      setImagePreview("");
+      setImageFile(null);
+      setErrors({});
     }
   };
 
   const handleEdit = (post) => {
-    setStateValue("currentPost", post);
-    setStateValue("imagePreview", post.thumbnail_postingan || "");
-    setStateValue("isEdit", true);
-    setStateValue("open", true);
-    setStateValue("errors", {});
+    setCurrentPost(post);
+    setImagePreview(post.thumbnail_postingan || "");
+    setIsEdit(true);
+    setOpen(true);
+    setErrors({});
   };
 
   const handleDeleteClick = (post) => {
-    setStateValue("postToDelete", post);
-    setStateValue("deleteModalOpen", true);
+    setPostToDelete(post);
+    setDeleteModalOpen(true);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setStateValue("currentPost", { ...currentPost, [name]: value });
+    setCurrentPost({ ...currentPost, [name]: value });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setStateValue("imageFile", file);
+      setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setStateValue("imagePreview", reader.result);
+      reader.onloadend = () => setImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
   const toggleDescription = (id) => {
-    setStateValue("showFullDescription", {
+    setShowFullDescription({
       ...showFullDescription,
       [id]: !showFullDescription[id],
     });
@@ -248,6 +213,7 @@ const ManagePostPage = () => {
 
   return (
     <div className="container mx-auto p-4">
+      <ToastContainer />
       <Typography variant="h2" className="text-2xl font-bold mb-6">
         Kelola Postingan
       </Typography>
@@ -258,7 +224,7 @@ const ManagePostPage = () => {
             label="Cari Postingan..."
             icon={<MagnifyingGlassIcon className="h-5 w-5" />}
             value={searchTerm}
-            onChange={(e) => setStateValue("searchTerm", e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Button className="flex items-center gap-2" onClick={handleOpen}>
@@ -274,7 +240,6 @@ const ManagePostPage = () => {
             </Typography>
           ) : (
             <div className="overflow-x-auto">
-              <ToastContainer />
               <table className="w-full min-w-max table-auto">
                 <thead>
                   <tr>
@@ -303,7 +268,9 @@ const ManagePostPage = () => {
                     .slice((currentPage - 1) * 5, currentPage * 5)
                     .map((post, index) => (
                       <tr key={post.id}>
-                        <td className="p-4">{index + 1}</td>
+                        <td className="p-4">
+                          {(currentPage - 1) * 5 + index + 1}
+                        </td>
                         <td className="p-4 border-b border-blue-gray-50">
                           <Avatar
                             src={post.thumbnail_postingan || imageNotFound}
@@ -347,9 +314,9 @@ const ManagePostPage = () => {
                           <Chip
                             value={post.kategori}
                             color={
-                              post.kategori === "Pengumuman"
+                              post.kategori === "pengumuman"
                                 ? "blue"
-                                : post.kategori === "Prestasi"
+                                : post.kategori === "prestasi"
                                 ? "green"
                                 : "amber"
                             }
@@ -385,7 +352,7 @@ const ManagePostPage = () => {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={Math.ceil(posts.length / 5)}
-                  onPageChange={(page) => setStateValue("currentPage", page)}
+                  onPageChange={(page) => setCurrentPage(page)}
                 />
               </div>
             </div>
@@ -482,15 +449,15 @@ const ManagePostPage = () => {
                 label="Kategori *"
                 value={currentPost.kategori}
                 onChange={(value) =>
-                  setStateValue("currentPost", {
+                  setCurrentPost({
                     ...currentPost,
                     kategori: value,
                   })
                 }
                 error={!!errors.kategori}>
-                <Option value="Pengumuman">Pengumuman</Option>
-                <Option value="Prestasi">Prestasi</Option>
-                <Option value="Kegiatan">Kegiatan</Option>
+                <Option value="pengumuman">Pengumuman</Option>
+                <Option value="prestasi">Prestasi</Option>
+                <Option value="kegiatan">Kegiatan</Option>
               </Select>
               {errors.kategori && (
                 <Typography color="red" variant="small">
@@ -541,9 +508,7 @@ const ManagePostPage = () => {
         </DialogFooter>
       </Dialog>
 
-      <Dialog
-        open={deleteModalOpen}
-        handler={() => setStateValue("deleteModalOpen", false)}>
+      <Dialog open={deleteModalOpen} handler={() => setDeleteModalOpen(false)}>
         <DialogHeader>Konfirmasi Penghapusan</DialogHeader>
         <DialogBody>
           Apakah Anda yakin ingin menghapus postingan ini? Aksi ini tidak dapat
@@ -553,7 +518,7 @@ const ManagePostPage = () => {
           <Button
             variant="text"
             color="blue-gray"
-            onClick={() => setStateValue("deleteModalOpen", false)}
+            onClick={() => setDeleteModalOpen(false)}
             className="mr-1">
             Batal
           </Button>

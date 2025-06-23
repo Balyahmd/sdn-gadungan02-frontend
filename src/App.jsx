@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/user/HomePage";
 import FeedPage from "./pages/user/FeedPage";
 import DetailFeedPage from "./pages/user/DetailFeedPage";
@@ -14,15 +14,21 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import ManageTeacherPage from "./pages/admin/ManageTeacherPage";
 import ManageUserPage from "./pages/admin/ManageUserPage";
 import RequireAuth from "./components/auth/RequireAuth";
-import Layout from "./components/user/Layout";
-
+import Layout from "./layout/user/Layout";
+import TeacherPage from "./pages/user/TeacherPage";
 import "./App.css";
 import NotFoundPage from "./components/NotFoundPage";
+import { useState } from "react";
+import SplashScreen from "./components/SplashScreen";
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
+  if (loading) {
+    return <SplashScreen onComplete={() => setLoading(false)} />;
+  }
   return (
     <Routes>
-      <Route path="login" element={<LoginPage />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="postingan" element={<FeedPage />} />
@@ -31,8 +37,9 @@ function App() {
         <Route path="virtual-tour" element={<VirtualTourPage />} />
         <Route path="visi-misi" element={<VisiMisiPage />} />
         <Route path="sambutan-kepala-sekolah" element={<HeadSpeechPage />} />
+        <Route path="daftar-guru" element={<TeacherPage />} />
       </Route>
-
+      <Route path="login" element={<LoginPage />} />
       <Route path="/admin" element={<LayoutAdmin />}>
         <Route
           path="kelola-postingan"
@@ -42,7 +49,6 @@ function App() {
             </RequireAuth>
           }
         />
-        {/* Hanya superadmin yang bisa akses route berikut */}
         <Route
           path="dashboard"
           element={
@@ -77,8 +83,6 @@ function App() {
         />
       </Route>
 
-      {/* Fallback Route */}
-      {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
