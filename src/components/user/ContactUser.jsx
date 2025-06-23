@@ -39,9 +39,7 @@ export default function ContactUser() {
                     <MapPinIcon className="h-5 w-5 text-darkGreenColor1" />
                   </div>
                   <div>
-                    <Typography
-                      color="gray"
-                      className="font-normal max-w-[235px]">
+                    <Typography color="gray" className="font-normal">
                       Dsn. Sukomulyo RT.04 RW.01, Gadungan, Kec. Gandusari, Kab.
                       Blitar, Jawa Timur.
                       <br />
