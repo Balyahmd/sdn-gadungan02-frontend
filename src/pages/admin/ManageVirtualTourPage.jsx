@@ -39,7 +39,6 @@ const ManageVirtualTourPage = () => {
   });
   const [activeHotspot, setActiveHotspot] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  // Hapus previewUrl karena tidak digunakan untuk menghindari error lint
 
   const pannellumRef = useRef(null);
   const previewPannellumRef = useRef(null); // Untuk mode preview normal
@@ -48,6 +47,8 @@ const ManageVirtualTourPage = () => {
   const [pendingHotspot, setPendingHotspot] = useState(null);
 
   const fileInputRef = useRef(null);
+
+  const HOTSPOT_CATEGORIES = ["info", "custom"];
 
   useEffect(() => {
     return () => {
@@ -179,6 +180,12 @@ const ManageVirtualTourPage = () => {
         hotspots: (panorama.hotspots || []).map((hotspot) => ({
           ...hotspot,
           id_panorama_asal: hotspot.id_panorama_asal || panorama.id, // Pastikan id_panorama_asal ada
+          // Pastikan kategori_hotspot hanya "info" atau "custom"
+          kategori_hotspot: HOTSPOT_CATEGORIES.includes(
+            hotspot.kategori_hotspot
+          )
+            ? hotspot.kategori_hotspot
+            : "info",
         })),
       }));
 
@@ -228,9 +235,15 @@ const ManageVirtualTourPage = () => {
   // Pastikan handleSelectPanorama mempertahankan semua data hotspot
   const handleSelectPanorama = useCallback((panorama) => {
     // Filter hotspot berdasarkan id_panorama_asal
-    const filteredHotspots = (panorama.hotspots || []).filter(
-      (hotspot) => hotspot.id_panorama_asal === panorama.id
-    );
+    const filteredHotspots = (panorama.hotspots || [])
+      .filter((hotspot) => hotspot.id_panorama_asal === panorama.id)
+      .map((hotspot) => ({
+        ...hotspot,
+        // Pastikan kategori_hotspot hanya "info" atau "custom"
+        kategori_hotspot: HOTSPOT_CATEGORIES.includes(hotspot.kategori_hotspot)
+          ? hotspot.kategori_hotspot
+          : "info",
+      }));
 
     console.log("Selected Panorama:", panorama); // Debugging log
     console.log("Filtered Hotspots:", filteredHotspots); // Debugging log
@@ -281,6 +294,7 @@ const ManageVirtualTourPage = () => {
           yaw: position.yaw || currentYaw,
           text: `Hotspot ${formData.hotspots.length + 1}`,
           description: "Deskripsi di sini",
+          kategori_hotspot: "info", // Default kategori_hotspot adalah "info"
           targetPanoramaId: null, // Panorama tujuan (default null)
         };
 
@@ -324,6 +338,7 @@ const ManageVirtualTourPage = () => {
     handleAddHotspot({ pitch, yaw });
   }, [formData.gambar_panorama, handleAddHotspot]);
 
+  // --- FIX: kategori_hotspot tidak masuk ke database ---
   const handleSaveHotspot = useCallback(
     debounce(async (updatedHotspot) => {
       try {
@@ -336,6 +351,13 @@ const ManageVirtualTourPage = () => {
         ) {
           throw new Error("Harap isi semua field yang wajib diisi");
         }
+
+        // Validasi kategori_hotspot hanya boleh "info" atau "custom"
+        let kategoriHotspot = HOTSPOT_CATEGORIES.includes(
+          updatedHotspot.kategori_hotspot
+        )
+          ? updatedHotspot.kategori_hotspot
+          : "info";
 
         let panoramaId = selectedPanorama?.id;
 
@@ -368,6 +390,7 @@ const ManageVirtualTourPage = () => {
           yaw: updatedHotspot.yaw,
           text: updatedHotspot.text,
           description: updatedHotspot.description || "",
+          kategori_hotspot: kategoriHotspot, // Hanya "info" atau "custom"
           targetPanoramaId: updatedHotspot.targetPanoramaId || null, // Panorama tujuan
         };
 
@@ -534,6 +557,7 @@ const ManageVirtualTourPage = () => {
               handleAddHotspot={handleAddHotspot}
               handleSelectPanorama={handleSelectPanorama}
               setShowSaveModal={setShowSaveModal}
+              hotspotCategories={HOTSPOT_CATEGORIES}
             />
           )}
         </div>
@@ -571,6 +595,7 @@ const ManageVirtualTourPage = () => {
         onDelete={handleDeleteHotspot}
         isSaving={isSavingHotspot}
         pannellumRef={editMode ? pannellumRef : previewPannellumRef}
+        hotspotCategories={HOTSPOT_CATEGORIES} // Berikan pilihan kategori ke modal
       />
 
       <SaveModalVirtualTour

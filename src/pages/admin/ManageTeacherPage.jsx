@@ -135,13 +135,10 @@ const ManageTeacherPage = () => {
         formData.append("keepExistingImage", "true");
       }
 
-      if (isEditing) {
-        await TeacherService.updateTeacher(currentTeacher.id, formData);
-        toast.success("Guru berhasil diupdate");
-      } else {
-        await TeacherService.createTeacher(formData);
-        toast.success("Guru berhasil ditambahkan");
-      }
+      await (isEditing
+        ? TeacherService.updateTeacher(currentTeacher.id, formData)
+        : TeacherService.createTeacher(formData));
+      toast.success(`Guru berhasil ${isEditing ? "diupdate" : "ditambahkan"}`);
 
       await fetchTeachers();
       setOpenModal(false);

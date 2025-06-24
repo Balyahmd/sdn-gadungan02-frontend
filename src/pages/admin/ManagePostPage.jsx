@@ -113,7 +113,7 @@ const ManagePostPage = () => {
       } else if (isEdit && currentPost.thumbnail_postingan) {
         formData.append("keepExistingImage", "true");
       }
-      
+
       if (isEdit) {
         await PostService.updatePost(currentPost.id, formData);
         toast.success("Postingan berhasil diupdate");

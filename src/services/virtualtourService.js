@@ -7,19 +7,8 @@ const VirtualTourService = {
         params: { search },
       });
 
-      // Transform data with proper image URLs
       const transformedData = response.data.data.map((panorama) => ({
         ...panorama,
-        gambar_panorama: panorama.gambar_panorama,
-        hotspots: panorama.hotspots.map((hotspot) => ({
-          id: hotspot.id,
-          pitch: hotspot.pitch,
-          yaw: hotspot.yaw,
-          text: hotspot.name_deskripsi,
-          description: hotspot.deskripsi,
-          targetPanoramaId: hotspot.targetpanoramald,
-          iconUrl: hotspot.iconUrl,
-        })),
       }));
 
       return {
@@ -110,6 +99,7 @@ const VirtualTourService = {
         yaw: hotspotData.yaw,
         text: hotspotData.text,
         description: hotspotData.description,
+        kategori_hotspot: hotspotData.kategori_hotspot,
         targetPanoramaId: hotspotData.targetPanoramaId || null,
       });
       return response.data;
@@ -134,6 +124,7 @@ const VirtualTourService = {
           yaw: yaw,
           text: hotspotData.text,
           description: hotspotData.description || "",
+          kategori_hotspot: hotspotData.kategori_hotspot,
           targetPanoramaId: hotspotData.targetPanoramaId || null,
         }
       );

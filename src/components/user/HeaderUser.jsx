@@ -78,13 +78,13 @@ export default function Header() {
       {/* Top Header */}
       <div
         className={`bg-green-700 text-white overflow-hidden transition-[max-height] duration-500 ease-in-out ${
-          isScrolled ? "max-h-0" : "max-h-[140px] py-2"
+          isScrolled ? "max-h-0" : "max-h-[200px] py-1.5"
         }`}>
         <div className="container mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2">
           <div className="w-full sm:w-auto flex justify-center sm:justify-start items-center">
             <MapPinIcon className="h-4 w-4 mr-2" />
             <span className="text-sm text-center sm:text-left">
-              Ds. Sukomulyo 04/01, Gadungan, Gandusari, Blitar, Jawa Timur.
+              Sukomulyo 04/01, Gadungan, Gandusari, Blitar, Jawa Timur.
             </span>
           </div>
           <div className="hidden md:flex items-center">

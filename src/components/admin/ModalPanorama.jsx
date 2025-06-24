@@ -10,7 +10,6 @@ import {
 import {
   ArrowLeftIcon,
   PhotoIcon,
-  PlusIcon,
   TrashIcon,
   XMarkIcon,
   CheckIcon,
@@ -25,7 +24,6 @@ const ModalPanorama = ({
   setEditMode,
   handleFileChange,
   fileInputRef,
-  // handleAddHotspotButton,
   handleClearAllHotspots,
   activeHotspot,
   setActiveHotspot,
@@ -35,6 +33,7 @@ const ModalPanorama = ({
   handleAddHotspot,
   handleSelectPanorama,
   setShowSaveModal,
+  hotspotCategories = [],
 }) => {
   return (
     <Card>
@@ -47,7 +46,8 @@ const ModalPanorama = ({
             <Button
               variant="outlined"
               onClick={() => setEditMode(false)}
-              disabled={isUploading}>
+              disabled={isUploading}
+              type="button">
               <div className="flex items-center justify-center w-full">
                 <ArrowLeftIcon className="h-4 w-4 mr-1" /> Kembali
               </div>
@@ -85,7 +85,9 @@ const ModalPanorama = ({
                 fullWidth
                 className="flex items-center gap-2"
                 disabled={isUploading}
-                onClick={() => fileInputRef.current.click()}
+                onClick={() =>
+                  fileInputRef.current && fileInputRef.current.click()
+                }
                 type="button">
                 <PhotoIcon className="h-5 w-5" />
                 Unggah Gambar Panorama
@@ -98,19 +100,13 @@ const ModalPanorama = ({
                   Hotspot ({formData.hotspots.length})
                 </Typography>
                 <div className="flex gap-2">
-                  {/* <Button
-                    variant="gradient"
-                    size="sm"
-                    onClick={handleAddHotspotButton}
-                    disabled={isUploading || !formData.gambar_panorama}>
-                    <PlusIcon className="h-4 w-4" /> Tambah
-                  </Button> */}
                   <Button
                     variant="outlined"
                     color="red"
                     size="sm"
                     onClick={handleClearAllHotspots}
-                    disabled={isUploading || formData.hotspots.length === 0}>
+                    disabled={isUploading || formData.hotspots.length === 0}
+                    type="button">
                     <span className="flex items-center gap-2">
                       <TrashIcon className="h-4 w-4 mx-auto" />
                       Hapus Semua
@@ -130,12 +126,22 @@ const ModalPanorama = ({
                       ? hotspot.yaw
                       : parseFloat(hotspot.yaw) || 0;
 
+                  // Tampilkan kategori hotspot jika ada
+                  const kategori =
+                    hotspot.kategori_hotspot &&
+                    hotspotCategories.includes(hotspot.kategori_hotspot)
+                      ? hotspot.kategori_hotspot
+                      : undefined;
+
                   return (
                     <Chip
-                      key={index}
-                      value={`${hotspot.text || "Hotspot"} (${pitch.toFixed(
-                        1
-                      )}, ${yaw.toFixed(1)})`}
+                      key={hotspot.id || index}
+                      value={
+                        `${hotspot.text || "Hotspot"} (${pitch.toFixed(
+                          1
+                        )}, ${yaw.toFixed(1)})` +
+                        (kategori ? ` [${kategori}]` : "")
+                      }
                       color={activeHotspot?.id === hotspot.id ? "blue" : "gray"}
                       onClick={() => {
                         setActiveHotspot(hotspot);
@@ -158,7 +164,7 @@ const ModalPanorama = ({
             <PreviewPane
               pannellumRef={pannellumRef}
               image={formData.gambar_panorama}
-              hotspots={selectedPanorama?.hotspots || []}
+              hotspots={formData.hotspots}
               editMode={true}
               onAddHotspot={handleAddHotspot}
               panoramas={panoramas}
@@ -174,7 +180,8 @@ const ModalPanorama = ({
             variant="outlined"
             color="red"
             onClick={() => setEditMode(false)}
-            disabled={isUploading}>
+            disabled={isUploading}
+            type="button">
             <span className="flex items-center justify-center">
               <XMarkIcon className="h-4 w-4 mr-1" />
               Batal
@@ -183,7 +190,8 @@ const ModalPanorama = ({
           <Button
             color="green"
             onClick={() => setShowSaveModal(true)}
-            disabled={isUploading}>
+            disabled={isUploading}
+            type="button">
             <span className="flex items-center justify-center w-full">
               <CheckIcon className="h-4 w-4 mr-1" /> Simpan
             </span>
