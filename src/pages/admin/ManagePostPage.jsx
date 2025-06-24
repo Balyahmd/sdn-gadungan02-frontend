@@ -211,6 +211,12 @@ const ManagePostPage = () => {
     );
   }
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const filteredPosts =
+    user?.role === "superadmin"
+      ? posts
+      : posts.filter((post) => post.author_username === user?.username);
+
   return (
     <div className="container mx-auto p-4">
       <ToastContainer />
@@ -234,7 +240,7 @@ const ManagePostPage = () => {
 
       <Card>
         <CardBody>
-          {posts.length === 0 ? (
+          {filteredPosts.length === 0 ? (
             <Typography className="text-center py-8">
               Tidak ada postingan ditemukan
             </Typography>
@@ -264,7 +270,7 @@ const ManagePostPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {posts
+                  {filteredPosts
                     .slice((currentPage - 1) * 5, currentPage * 5)
                     .map((post, index) => (
                       <tr key={post.id}>
@@ -351,7 +357,7 @@ const ManagePostPage = () => {
               <div className="mt-4 mb-8 flex justify-end">
                 <Pagination
                   currentPage={currentPage}
-                  totalPages={Math.ceil(posts.length / 5)}
+                  totalPages={Math.ceil(filteredPosts.length / 5)}
                   onPageChange={(page) => setCurrentPage(page)}
                 />
               </div>

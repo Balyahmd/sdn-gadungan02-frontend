@@ -10,19 +10,44 @@ api.interceptors.request.use((config) => {
 });
 
 // Response interceptor for handling errors
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     if (error.response?.status === 401) {
+//       // Only remove token and redirect if it's not a verify request
+//       if (!error.config.url.includes("/auth/verify")) {
+//         localStorage.removeItem("token");
+//         localStorage.removeItem("role");
+//         if (!window.location.pathname.includes("/login")) {
+//           window.location.href = "/login";
+//         }
+//       }
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Only remove token and redirect if it's not a verify request
-      if (!error.config.url.includes("/auth/verify")) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        if (!window.location.pathname.includes("/login")) {
-          window.location.href = "/login";
-        }
+    // Jika status 401 dan token expired (bukan verify), logout
+    const isTokenExpired =
+      error.response?.status === 401 &&
+      error.response?.data?.message?.toLowerCase().includes("token");
+
+    const isVerifyRequest = error.config.url.includes("/auth/verify");
+    const isLoginPage = window.location.pathname.includes("/login");
+
+    if (isTokenExpired && !isVerifyRequest) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("user");
+
+      if (!isLoginPage) {
+        window.location.href = "/login";
       }
     }
+
     return Promise.reject(error);
   }
 );
