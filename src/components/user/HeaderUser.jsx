@@ -77,8 +77,8 @@ export default function Header() {
     <div className="sticky top-0 z-50 w-full">
       {/* Top Header */}
       <div
-        className={`bg-green-700 text-white transition-all duration-300 ${
-          isScrolled ? "h-0 overflow-hidden py-0" : "py-2"
+        className={`bg-green-700 text-white overflow-hidden transition-[max-height] duration-500 ease-in-out ${
+          isScrolled ? "max-h-0" : "max-h-[140px] py-2"
         }`}>
         <div className="container mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2">
           <div className="w-full sm:w-auto flex justify-center sm:justify-start items-center">

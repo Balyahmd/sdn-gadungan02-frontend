@@ -85,30 +85,39 @@ const VirtualTourPage = () => {
           <Card className="shadow-2xl border border-blue-100">
             <CardBody className="p-0">
               <div className="w-full h-[500px] rounded-lg overflow-hidden">
-                <Pannellum
-                  width="100%"
-                  height="500px"
-                  image={currentSpot.gambar_panorama}
-                  pitch={0}
-                  yaw={0}
-                  hfov={120}
-                  autoLoad
-                  showZoomCtrl
-                  showFullscreenCtrl>
-                  {currentSpot.hotspots.map((hotspot) => (
-                    <Pannellum.Hotspot
-                      key={hotspot.id}
-                      type="custom"
-                      pitch={hotspot.pitch}
-                      yaw={hotspot.yaw}
-                      handleClick={() => {
-                        if (hotspot.targetPanoramaId) {
-                          setCurrentPanoramaId(hotspot.targetPanoramaId);
-                        }
-                      }}
-                    />
-                  ))}
-                </Pannellum>
+                {(() => {
+                  const isMobile = window.innerWidth <= 768;
+                  const panoramaUrl = isMobile
+                    ? `${currentSpot.gambar_panorama}?tr=w-4096`
+                    : currentSpot.gambar_panorama;
+
+                  return (
+                    <Pannellum
+                      width="100%"
+                      height="500px"
+                      image={panoramaUrl}
+                      pitch={0}
+                      yaw={0}
+                      hfov={120}
+                      autoLoad
+                      showZoomCtrl
+                      showFullscreenCtrl>
+                      {currentSpot.hotspots.map((hotspot) => (
+                        <Pannellum.Hotspot
+                          key={hotspot.id}
+                          type="custom"
+                          pitch={hotspot.pitch}
+                          yaw={hotspot.yaw}
+                          handleClick={() => {
+                            if (hotspot.targetPanoramaId) {
+                              setCurrentPanoramaId(hotspot.targetPanoramaId);
+                            }
+                          }}
+                        />
+                      ))}
+                    </Pannellum>
+                  );
+                })()}
               </div>
             </CardBody>
           </Card>
