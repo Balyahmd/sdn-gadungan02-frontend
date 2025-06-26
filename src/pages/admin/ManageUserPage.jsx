@@ -1,387 +1,200 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardBody,
   Typography,
-  Button,
   Input,
-  Select,
-  Option,
-  Dialog,
-  DialogHeader,
-  DialogBody,
-  DialogFooter,
-  Tooltip,
-  IconButton,
-  Chip,
+  Button,
 } from "@material-tailwind/react";
-import {
-  PencilIcon,
-  TrashIcon,
-  PlusIcon,
-  CheckIcon,
-  XMarkIcon,
-  UserCircleIcon,
-  EnvelopeIcon,
-} from "@heroicons/react/24/solid";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
-import { Pagination } from "../../components/Pagination";
-
-import api from "../../utils/api.js";
+import api from "../../utils/api";
 
 const ManageUserPage = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: "",
-  });
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
   const [errors, setErrors] = useState({});
-  const [currentPage] = useState(1);
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/users");
-      console.log(response.data.length);
-      setUsers(response.data.data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      toast.error(error.response?.data?.message || "Failed to fetch users");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+
+  const userId = JSON.parse(localStorage.getItem("user"))?.id;
 
   useEffect(() => {
-    fetchUsers();
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        if (!userId) {
+          toast.error("User ID tidak ditemukan. Silakan login ulang.");
+          setLoading(false);
+          return;
+        }
+        const res = await api.get(`/users/${userId}`);
+        // Pastikan data user ada
+        if (!res.data || !res.data.data) {
+          toast.error("Data user tidak ditemukan.");
+          setCurrentUser({
+            id: "",
+            username: "",
+            email: "",
+            password: "",
+            role: "",
+          });
+        } else {
+          setCurrentUser({ ...res.data.data, password: "" });
+        }
+      } catch {
+        toast.error("Gagal mengambil data pengguna");
+        setCurrentUser({
+          id: "",
+          username: "",
+          email: "",
+          password: "",
+          role: "",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+    // eslint-disable-next-line
   }, []);
-
-  const handleOpenModal = (user = null) => {
-    if (user) {
-      setCurrentUser({
-        ...user,
-        password: "",
-      });
-      setIsEditing(true);
-    } else {
-      setCurrentUser({
-        username: "",
-        email: "",
-        password: "",
-        role: "admin",
-      });
-      setIsEditing(false);
-    }
-    setErrors({});
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-  };
-
-  const handleOpenDeleteModal = (id) => {
-    setUserToDelete(id);
-    setOpenDeleteModal(true);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setOpenDeleteModal(false);
-    setUserToDelete(null);
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCurrentUser({
-      ...currentUser,
-      [name]: value,
-    });
+    setCurrentUser((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  const setStateValue = (key, value) => {
-    setCurrentUser((prev) => ({ ...prev, [key]: value }));
-  };
-  const validateForm = () => {
+  const handleSubmit = async () => {
     const newErrors = {};
-
-    // Validasi username
-    if (!currentUser.username?.trim()) {
+    if (!currentUser.username) {
       newErrors.username = "Username wajib diisi";
-    } else if (currentUser.username.length < 4) {
-      newErrors.username = "Username minimal 4 karakter";
+    } else if (currentUser.username.length < 5) {
+      newErrors.username = "Username minimal 5 karakter";
     }
-
-    // Validasi email
-    if (!currentUser.email?.trim()) {
-      newErrors.email = "Email wajib diisi";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentUser.email)) {
+    if (!currentUser.email) newErrors.email = "Email wajib diisi";
+    // Validasi email sederhana
+    if (
+      currentUser.email &&
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(currentUser.email)
+    ) {
       newErrors.email = "Format email tidak valid";
     }
-
-    // Validasi password hanya saat bukan editing
-    if (!isEditing) {
-      if (!currentUser.password?.trim()) {
-        newErrors.password = "Password wajib diisi";
-      } else if (currentUser.password.length < 6) {
-        newErrors.password = "Password minimal 6 karakter";
-      }
+    // Validasi password jika diisi
+    if (currentUser.password && currentUser.password.length < 6) {
+      newErrors.password = "Password minimal 6 karakter";
     }
 
-    return newErrors;
-  };
-
-  const handleSaveUser = async () => {
-    const formErrors = validateForm();
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
     try {
-      if (isEditing) {
-        await api.put(`/users/${currentUser.id}`, currentUser);
-        toast.success("User berhasil diupdate");
-      } else {
-        await api.post("/users", currentUser);
-        toast.success("User berhasil ditambahkan");
+      // Jangan kirim password jika kosong
+      const payload = { ...currentUser };
+      if (!payload.password) {
+        delete payload.password;
       }
-
-      fetchUsers();
-      handleCloseModal();
-    } catch (error) {
-      console.error("Error saving user:", error);
-      toast.error(
-        error.response?.data?.message ||
-          `Gagal ${isEditing ? "mengupdate" : "menambahkan"} user`
-      );
+      await api.put(`/users/${currentUser.id}`, payload);
+      toast.success("Data akun berhasil diperbarui");
+      setCurrentUser((prev) => ({ ...prev, password: "" }));
+    } catch (err) {
+      if (err.response && err.response.data && err.response.data.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Gagal memperbarui data akun");
+      }
     }
   };
 
-  const handleDeleteUser = async () => {
-    try {
-      await api.delete(`/users/${userToDelete}`);
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4 max-w-xl flex justify-center items-center h-96">
+        <Typography variant="h6">Memuat data akun...</Typography>
+      </div>
+    );
+  }
 
-      toast.success("User berhasil dihapus");
-      fetchUsers();
-      handleCloseDeleteModal();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error(error.response?.data?.message || "Failed to delete user");
-    }
-  };
+  // Jika currentUser null, tampilkan pesan error
+  if (!currentUser) {
+    return (
+      <div className="container mx-auto p-4 max-w-xl flex justify-center items-center h-96">
+        <Typography variant="h6" color="red">
+          Data user tidak ditemukan.
+        </Typography>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 max-w-xl">
       <ToastContainer />
-      <Dialog open={openModal} handler={handleCloseModal} size="md">
-        <DialogHeader>
-          {isEditing ? "Edit Pengguna" : "Tambah Pengguna Baru"}
-        </DialogHeader>
-        <DialogBody divider className="grid gap-4">
-          <Input
-            label="Nama Lengkap"
-            name="username"
-            value={currentUser.username}
-            onChange={handleChange}
-            error={!!errors.username}
-            icon={<UserCircleIcon className="h-5 w-5" />}
-          />
-          {errors.username && (
-            <span className="text-red-500 text-sm">{errors.username}</span>
-          )}
+      <Typography variant="h4" className="mb-6 font-bold">
+        Kelola Akun Saya
+      </Typography>
+      <Card>
+        <CardBody className="grid gap-4">
+          <div>
+            <Input
+              label="Username"
+              name="username"
+              value={currentUser.username}
+              onChange={handleChange}
+              error={!!errors.username}
+              autoComplete="username"
+            />
+            {errors.username && (
+              <span className="text-red-500 text-sm">{errors.username}</span>
+            )}
+          </div>
 
-          <Input
-            label="Email"
-            name="email"
-            value={currentUser.email}
-            onChange={handleChange}
-            error={!!errors.email}
-            icon={<EnvelopeIcon className="h-5 w-5" />}
-          />
-          {errors.email && (
-            <span className="text-red-500 text-sm">{errors.email}</span>
-          )}
+          <div>
+            <Input
+              label="Email"
+              name="email"
+              value={currentUser.email}
+              onChange={handleChange}
+              error={!!errors.email}
+              autoComplete="email"
+            />
+            {errors.email && (
+              <span className="text-red-500 text-sm">{errors.email}</span>
+            )}
+          </div>
 
           <div className="relative">
             <Input
               type={showPassword ? "text" : "password"}
-              label="Password"
+              label="Password Baru"
               name="password"
               value={currentUser.password}
               onChange={handleChange}
+              className="pr-10"
+              autoComplete="new-password"
               error={!!errors.password}
-              // icon={<LockClosedIcon className="h-5 w-5" />}
-              className="pr-10" // berikan padding agar tidak tertutup tombol
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-black">
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-black"
+              tabIndex={-1}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
-          </div>
-          {errors.password && (
-            <span className="text-red-500 text-sm">{errors.password}</span>
-          )}
-
-          <Select
-            label="Role"
-            value={currentUser.role}
-            onChange={(value) =>
-              setCurrentUser({ ...currentUser, role: value })
-            }>
-            <Option value="superadmin">Super Admin</Option>
-            <Option value="admin">Admin</Option>
-          </Select>
-        </DialogBody>
-        <DialogFooter>
-          <Button
-            variant="text"
-            color="red"
-            onClick={handleCloseModal}
-            className="mr-1">
-            <XMarkIcon className="h-5 w-5 mr-1" /> Batal
-          </Button>
-          <Button color="green" onClick={handleSaveUser}>
-            <CheckIcon className="h-5 w-5 mr-1" />{" "}
-            {isEditing ? "Update" : "Simpan"}
-          </Button>
-        </DialogFooter>
-      </Dialog>
-
-      {/* Modal Hapus */}
-      <Dialog open={openDeleteModal} handler={handleCloseDeleteModal} size="sm">
-        <DialogHeader>Konfirmasi Hapus</DialogHeader>
-        <DialogBody>
-          Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak
-          dapat dibatalkan.
-        </DialogBody>
-        <DialogFooter>
-          <Button
-            variant="text"
-            color="blue-gray"
-            onClick={handleCloseDeleteModal}>
-            Batal
-          </Button>
-          <Button color="red" onClick={handleDeleteUser}>
-            Hapus
-          </Button>
-        </DialogFooter>
-      </Dialog>
-
-      {/* Konten Utama */}
-      <Typography variant="h2" className="text-2xl font-bold mb-6">
-        Manajemen Pengguna
-      </Typography>
-
-      <Card className="mb-6">
-        <CardBody>
-          <div className="flex justify-between items-center mb-6">
-            <Typography variant="h5" className="font-bold">
-              Daftar Pengguna
-            </Typography>
-            <Button
-              className="flex items-center gap-2"
-              onClick={() => handleOpenModal()}>
-              <PlusIcon className="h-5 w-5" /> Tambah Pengguna
-            </Button>
+            {errors.password && (
+              <span className="text-red-500 text-xs mt-1">
+                {errors.password}
+              </span>
+            )}
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center h-32">
-              <Typography>Loading...</Typography>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-max">
-                <thead>
-                  <tr>
-                    {["No", "Username", "Role", "Aksi"].map((head) => (
-                      <th
-                        key={head}
-                        className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                        <Typography
-                          variant="small"
-                          className="font-normal leading-none opacity-70">
-                          {head}
-                        </Typography>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.length > 0 ? (
-                    users
-                      .slice((currentPage - 1) * 5, currentPage * 5)
-                      .map((user, index) => (
-                        <tr
-                          key={user.id}
-                          className="border-b border-blue-gray-100">
-                          <td className="p-4">{index + 1}</td>
-                          <td className="p-4">{user.username}</td>
-                          <td className="p-4">{user.email}</td>
-                          <td className="p-4">
-                            <Chip
-                              value={user.role}
-                              color={
-                                user.role === "superadmin"
-                                  ? "amber"
-                                  : user.role === "admin"
-                                  ? "blue"
-                                  : "green"
-                              }
-                            />
-                          </td>
-                          <td className="p-4">
-                            <div className="flex gap-2">
-                              <Tooltip content="Edit">
-                                <IconButton
-                                  variant="text"
-                                  color="blue"
-                                  onClick={() => handleOpenModal(user)}>
-                                  <PencilIcon className="h-5 w-5" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip content="Hapus">
-                                <IconButton
-                                  variant="text"
-                                  color="red"
-                                  onClick={() =>
-                                    handleOpenDeleteModal(user.id)
-                                  }>
-                                  <TrashIcon className="h-5 w-5" />
-                                </IconButton>
-                              </Tooltip>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="p-4 text-center">
-                        Tidak ada data pengguna
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              <div className="mt-4 mb-8 flex justify-end">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={Math.ceil(users.length / 5)}
-                  onPageChange={(page) => setStateValue("currentPage", page)}
-                />
-              </div>
-            </div>
-          )}
+          <Button
+            color="green"
+            onClick={handleSubmit}
+            className="mt-2 py-3 rounded-xl text-base font-bold bg-green-700 shadow-lg hover:bg-green-800 transition-all"
+            ripple="light"
+            fullWidth>
+            Simpan Perubahan
+          </Button>
         </CardBody>
       </Card>
     </div>

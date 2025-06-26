@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-  DocumentTextIcon,
-  UsersIcon,
-  AcademicCapIcon,
-} from "@heroicons/react/24/solid";
+import { DocumentTextIcon, AcademicCapIcon } from "@heroicons/react/24/solid";
 import { TbView360 } from "react-icons/tb";
 import { Card, CardBody, Typography } from "@material-tailwind/react";
 import PostService from "../../../services/postService";
 import TeacherService from "../../../services/teacherService";
-import UserService from "../../../services/userService";
 import VirtualTourService from "../../../services/virtualtourService";
 
 function StatistikSection() {
@@ -19,24 +14,21 @@ function StatistikSection() {
   const [counts, setCounts] = useState({
     posts: 0,
     teachers: 0,
-    users: 0,
     virtuals: 0,
   });
 
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const [posts, teachers, users, panoramas] = await Promise.all([
+        const [posts, teachers, panoramas] = await Promise.all([
           PostService.getPosts(searchTerm),
           TeacherService.getTeachers(searchTerm),
-          UserService.getUsers(searchTerm),
           VirtualTourService.getPanoramas(),
         ]);
 
         setCounts({
           posts: posts.data.length,
           teachers: teachers.data.length,
-          users: users.data.length,
           virtuals: panoramas.data.length,
         });
       } catch (error) {
@@ -61,12 +53,6 @@ function StatistikSection() {
       color: "bg-green-500",
     },
     {
-      title: "Total Users",
-      value: counts.users,
-      icon: <UsersIcon className="h-6 w-6" />,
-      color: "bg-amber-500",
-    },
-    {
       title: "Virtual Tour 360",
       value: counts.virtuals,
       icon: <TbView360 className="h-6 w-6" />,
@@ -75,7 +61,7 @@ function StatistikSection() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       {stats.map((stat, i) => (
         <Card key={i}>
           <CardBody className="flex items-center justify-between p-6">

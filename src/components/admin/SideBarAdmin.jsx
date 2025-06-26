@@ -41,31 +41,31 @@ const SideBarAdmin = () => {
       name: "Dashboard",
       icon: <CogIcon className="h-5 w-5" />,
       path: "/admin/dashboard",
-      roles: ["superadmin"],
+      roles: ["admin"],
     },
     {
       name: "Kelola Postingan",
       icon: <NewspaperIcon className="h-5 w-5" />,
       path: "/admin/kelola-postingan",
-      roles: ["admin", "superadmin"],
-    },
-    {
-      name: "Kelola Pengguna",
-      icon: <UserGroupIcon className="h-5 w-5" />,
-      path: "/admin/kelola-pengguna",
-      roles: ["superadmin"],
+      roles: ["admin"],
     },
     {
       name: "Kelola Guru",
       icon: <AcademicCapIcon className="h-5 w-5" />,
       path: "/admin/kelola-guru",
-      roles: ["superadmin"],
+      roles: ["admin"],
     },
     {
       name: "Kelola Panorama",
       icon: <GlobeAltIcon className="h-5 w-5" />,
       path: "/admin/kelola-virtual-tour",
-      roles: ["superadmin"],
+      roles: ["admin"],
+    },
+    {
+      name: "Kelola Akun",
+      icon: <UserGroupIcon className="h-5 w-5" />,
+      path: "/admin/kelola-akun",
+      roles: ["admin"],
     },
   ];
 

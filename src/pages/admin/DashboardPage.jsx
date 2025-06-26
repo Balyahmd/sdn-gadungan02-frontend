@@ -217,10 +217,15 @@ const DashboardPage = () => {
       <Typography
         variant="h2"
         className="text-2xl font-bold mb-6 text-gray-800">
-        Profil Sekolah
+        Halaman Dasboard
       </Typography>
 
       <StatistikSection />
+      <Typography
+        variant="h2"
+        className="text-2xl font-bold mb-6 text-gray-800">
+        Profil Sekolah
+      </Typography>
       <NavigationsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       <ToastContainer />
 

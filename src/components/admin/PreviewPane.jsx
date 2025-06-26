@@ -204,30 +204,34 @@ const PreviewPane = ({
           createTooltipFunc: (hotSpotDiv) => {
             // Bersihkan isi
             hotSpotDiv.innerHTML = "";
-            // Container
+
+            // Container utama hotspot
             const container = document.createElement("div");
             container.className = "hotspot-container";
-            // Dot
+
+            // Dot hotspot
             const dot = document.createElement("div");
             dot.className = "hotspot-dot";
             container.appendChild(dot);
-            // Label
+
+            // Label hotspot (jika diaktifkan)
             if (showHotspotLabels) {
               const label = document.createElement("div");
               label.className = "hotspot-label";
               label.textContent = hotspot.text || "Hotspot";
               container.appendChild(label);
             }
+
             hotSpotDiv.appendChild(container);
 
             // Event click jika ada targetPanoramaId
-            if (hotspot.targetPanoramaId) {
+            if (hotspot.targetPanoramaId && panoramas && onSelectPanorama) {
               hotSpotDiv.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const targetPanorama = panoramas.find(
-                  (p) => p.id === hotspot.targetPanoramaId
+                  (p) => String(p.id) === String(hotspot.targetPanoramaId)
                 );
-                if (targetPanorama && onSelectPanorama) {
+                if (targetPanorama) {
                   onSelectPanorama(targetPanorama);
                 }
               });

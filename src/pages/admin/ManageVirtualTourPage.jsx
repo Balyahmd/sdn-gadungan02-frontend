@@ -529,7 +529,7 @@ const ManageVirtualTourPage = () => {
                     pannellumRef={previewPannellumRef}
                     image={selectedPanorama.gambar_panorama}
                     hotspots={selectedPanorama.hotspots || []}
-                    editMode={false} // Pastikan false untuk mode view
+                    editMode={false}
                     panoramas={panoramas}
                     onSelectPanorama={handleSelectPanorama}
                   />

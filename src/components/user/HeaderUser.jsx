@@ -102,7 +102,7 @@ export default function Header() {
             <img src={logo} alt="Logo" className="h-10 w-15" />
             <Typography variant="h5" className="cursor-pointer">
               <span className="block text-gray-900 text-medium font-bold">
-                SDN GADUNGAN 02
+                UPT SDN GADUNGAN 02
               </span>
             </Typography>
           </div>

@@ -19,7 +19,7 @@ const JumbotronUser = () => {
   const slides = [
     {
       image: jumbo1,
-      title: "Selamat Datang di SDN GADUNGAN 2",
+      title: "Selamat Datang di UPT SDN Gadungan 02",
       subtitle:
         "Sekolah Unggul mewujudkan murid yang berakhlak mulia, unggul, dan mampu menjawab tantangan zaman",
     },

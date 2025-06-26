@@ -44,7 +44,7 @@ function App() {
         <Route
           path="kelola-postingan"
           element={
-            <RequireAuth allowedRoles={["admin", "superadmin"]}>
+            <RequireAuth allowedRoles={["admin"]}>
               <ManagePostPage />
             </RequireAuth>
           }
@@ -52,23 +52,23 @@ function App() {
         <Route
           path="dashboard"
           element={
-            <RequireAuth allowedRoles={["superadmin"]}>
+            <RequireAuth allowedRoles={["admin"]}>
               <DashboardPage path="dashboard" />
             </RequireAuth>
           }
         />
         <Route
-          path="kelola-pengguna"
+          path="kelola-akun"
           element={
-            <RequireAuth allowedRoles={["superadmin"]}>
-              <ManageUserPage path="users" />
+            <RequireAuth allowedRoles={["admin"]}>
+              <ManageUserPage />
             </RequireAuth>
           }
         />
         <Route
           path="kelola-guru"
           element={
-            <RequireAuth allowedRoles={["superadmin"]}>
+            <RequireAuth allowedRoles={["admin"]}>
               <ManageTeacherPage path="teacher" />
             </RequireAuth>
           }
@@ -76,7 +76,7 @@ function App() {
         <Route
           path="kelola-virtual-tour"
           element={
-            <RequireAuth allowedRoles={["superadmin"]}>
+            <RequireAuth allowedRoles={["admin"]}>
               <ManageVirtualTourPage path="kelola-virtual-tour" />
             </RequireAuth>
           }

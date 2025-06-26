@@ -26,13 +26,15 @@ export default function FooterUser() {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-8">
           {/* Logo Sekolah */}
           <div className="col-span-1">
-            <Typography variant="h5" className="mb-4">
-              <span className="block text-white">SDN GADUNGAN 2</span>
-            </Typography>
-            <img src={logo} alt="logo" className="w-30 h-40 py-1.5" />
-            <Typography className="text-gray-300">
-              Sekolah Unggul Berbasis Teknologi Informasi dan Karakter Bangsa
-            </Typography>
+            <div className="flex flex-col items-center text-center">
+              <Typography variant="h5" className="mb-4">
+                <span className="block text-white">UPT SDN GADUNGAN 2</span>
+              </Typography>
+              <img src={logo} alt="logo" className="w-30 h-40 py-1.5 mx-auto" />
+              <Typography className="text-gray-300">
+                Mencetak generasi cerdas, berkarakter, dan berbudaya.
+              </Typography>
+            </div>
           </div>
 
           {/* Footer Links */}
