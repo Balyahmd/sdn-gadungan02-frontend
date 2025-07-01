@@ -23,7 +23,6 @@ const VirtualTourPage = () => {
   // Ambil data panorama dari service
   const fetchPanoramas = async () => {
     const response = await VirtualTourService.getPanoramas();
-    console.log(response.data);
     setPanoramaData(response.data);
   };
 
