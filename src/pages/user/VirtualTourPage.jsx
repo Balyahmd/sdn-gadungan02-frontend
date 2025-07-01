@@ -40,7 +40,6 @@ const VirtualTourPage = () => {
   useEffect(() => {
     const spot = panoramaData.find((p) => p.id === currentPanoramaId);
     setCurrentSpot(spot);
-    console.log(currentSpot);
     if (spot) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
