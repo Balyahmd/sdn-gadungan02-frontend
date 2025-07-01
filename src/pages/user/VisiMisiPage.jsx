@@ -18,7 +18,6 @@ const VisiMisiPage = () => {
         setError(null); // reset error sebelum fetch
         setLoading(true);
         const result = await VisiMisiService.getVisiMisi();
-        console.log(result);
         setData({
           visi: result.data.text_visi || "Visi sekolah belum tersedia",
           misi: Array.isArray(result.data.text_misi)
